@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エポラーシェ 管理画面</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700;800&display=swap');
+:root{
+  --bg:#edeae4;--wh:#fff;--sf:#f7f4ef;
+  --bd:#ddd8d0;--bd2:#c5bdb4;
+  --nv:#1a3a5c;--nv2:#2e5f8a;--nvl:#e8f0f8;
+  --gd:#b8832a;--gdl:#fef6e4;
+  --ok:#1e6b45;--okl:#e4f5ec;
+  --rd:#b91c1c;--rdl:#fef2f2;
+  --wn:#92500a;--wnl:#fef4e4;
+  --tx:#1a1410;--tx2:#4a3f35;--tx3:#8a7d72;
+  --r:10px;--rs:6px;
+  --sh:0 2px 10px rgba(0,0,0,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"M PLUS 1p",sans-serif;background:var(--bg);color:var(--tx);font-size:13px;min-height:100vh;}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.login-box{background:var(--wh);border:1px solid var(--bd);border-radius:var(--r);padding:36px 40px;width:360px;box-shadow:var(--sh);text-align:center;}
+.login-logo{font-size:18px;font-weight:800;color:var(--nv);margin-bottom:4px;}
+.login-sub{font-size:11px;color:var(--tx3);margin-bottom:24px;}
+.login-box input{width:100%;padding:10px 12px;border:2px solid var(--bd);border-radius:var(--rs);font-family:inherit;font-size:14px;outline:none;margin-bottom:12px;transition:.18s;}
+.login-box input:focus{border-color:var(--nv);}
+.login-btn{width:100%;padding:11px;border:none;border-radius:var(--rs);background:var(--nv);color:#fff;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;}
+.login-btn:hover{background:var(--nv2);}
+.login-err{color:var(--rd);font-size:12px;margin-top:8px;font-weight:700;display:none;}
+.hd{background:var(--nv);height:48px;display:flex;align-items:center;padding:0 20px;gap:12px;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+.hd-logo{color:#fff;font-size:14px;font-weight:800;letter-spacing:.05em;}
+.hd-logo span{color:#f0c87a;}
+.hd-sp{flex:1;}
+.hd-info{color:rgba(255,255,255,.7);font-size:11px;}
+.hd-out{padding:5px 14px;border-radius:14px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;}
+.main{max-width:960px;margin:0 auto;padding:20px 16px 100px;}
+.page-title{font-size:17px;font-weight:800;color:var(--nv);margin-bottom:4px;}
+.page-sub{font-size:11px;color:var(--tx3);margin-bottom:20px;}
+.card{background:var(--wh);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px;overflow:hidden;box-shadow:var(--sh);}
+.card-head{background:var(--nv);color:#fff;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.05em;display:flex;align-items:center;gap:8px;}
+.card-body{padding:14px 16px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.fgrid-full{grid-column:1/-1;}
+.fg{display:flex;flex-direction:column;gap:3px;}
+.fg label{font-size:10px;font-weight:800;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;}
+.fg input,.fg select,.fg textarea{padding:7px 10px;border:2px solid var(--bd);border-radius:var(--rs);font-family:inherit;font-size:13px;outline:none;background:#fff;transition:.15s;}
+.fg input:focus,.fg select:focus{border-color:var(--nv);}
+.fg .hint{font-size:10px;color:var(--tx3);}
+.cp-block{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--rs);overflow:hidden;margin-bottom:8px;}
+.cp-block-head{padding:8px 12px;background:var(--bg);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.cp-block-head:hover{background:var(--nvl);}
+.cp-block-title{font-size:12px;font-weight:800;flex:1;}
+.cp-del-btn{width:24px;height:24px;border-radius:50%;border:none;background:var(--rdl);color:var(--rd);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.cp-block-body{padding:12px;}
+.cp-type-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;}
+.badge-A{background:#2d6a4f;} .badge-B{background:#92500a;} .badge-C{background:#6d28d9;}
+.badge-D{background:#b8832a;} .badge-E{background:#b91c1c;} .badge-F{background:#1a3a5c;}
+.rule-block{background:var(--wh);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 10px;margin-bottom:6px;}
+.rule-block-title{font-size:10px;font-weight:800;color:var(--tx3);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.rule-del{font-size:11px;color:var(--rd);cursor:pointer;border:none;background:none;font-family:inherit;font-weight:700;}
+.btn{padding:8px 16px;border-radius:16px;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;transition:.15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-save{background:var(--ok);color:#fff;box-shadow:0 3px 8px rgba(30,107,69,.25);}
+.btn-save:hover{background:#175a38;}
+.btn-save:disabled{opacity:.5;cursor:default;}
+.btn-add{background:var(--nv);color:#fff;}
+.btn-add:hover{background:var(--nv2);}
+.btn-outline{background:#fff;border:2px solid var(--bd2);color:var(--tx2);}
+.btn-outline:hover{border-color:var(--nv);color:var(--nv);}
+.btn-import{background:var(--okl);border:2px solid var(--ok);color:var(--ok);}
+.btn-export{background:var(--gdl);border:2px solid var(--gd);color:var(--wn);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:var(--wh);border-top:1px solid var(--bd);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -2px 8px rgba(0,0,0,.08);z-index:100;}
+.save-info{font-size:11px;color:var(--tx3);}
+.save-info span{color:var(--ok);font-weight:700;}
+.toast{position:fixed;top:16px;right:16px;padding:10px 18px;border-radius:var(--rs);font-size:12px;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:999;transform:translateY(-20px);opacity:0;transition:all .3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-ok{background:var(--ok);color:#fff;}
+.toast-err{background:var(--rd);color:#fff;}
+.pw-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+.pw-row .fg{flex:1;min-width:140px;}
+.month-highlight{background:var(--gdl);border-left:3px solid var(--gd);}
+/* 設定出力モーダル */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;}
+.modal-box{background:var(--wh);border-radius:var(--r);padding:24px;width:min(760px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25);}
+.modal-title{font-size:15px;font-weight:800;color:var(--nv);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.export-section{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);padding:12px 14px;margin-bottom:12px;}
+.export-section h3{font-size:11px;font-weight:800;color:var(--nv);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}
+.export-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bd);font-size:12px;}
+.export-row:last-child{border-bottom:none;}
+.export-label{color:var(--tx3);font-size:11px;}
+.export-val{font-weight:700;color:var(--tx);}
+.export-cp-item{background:var(--wh);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 10px;margin-bottom:6px;}
+.export-cp-name{font-size:12px;font-weight:800;color:var(--nv);margin-bottom:4px;}
+.export-cp-detail{font-size:11px;color:var(--tx3);line-height:1.7;}
+.copy-btn{padding:3px 10px;border-radius:10px;border:1.5px solid var(--bd2);background:#fff;color:var(--tx2);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;}
+.copy-btn:hover{border-color:var(--nv);color:var(--nv);}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="login-pg">
+  <div class="login-box">
+    <div class="login-logo">⚙️ エポラーシェ</div>
+    <div class="login-sub">管理画面 — スタッフ専用</div>
+    <input type="password" id="pw-inp" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">ログイン</button>
+    <div class="login-err" id="login-err">❌ パスワードが違います</div>
+  </div>
+</div>
+
+<div id="admin-pg" style="display:none;">
+  <header class="hd">
+    <div class="hd-logo"><span>✦</span> エポラーシェ 管理画面</div>
+    <div class="hd-sp"></div>
+    <div class="hd-info" id="hd-updated"></div>
+    <button class="hd-out" onclick="doLogout()">ログアウト</button>
+  </header>
+
+  <div class="main">
+    <div class="page-title">📅 今月の設定</div>
+    <div class="page-sub">変更後は必ず「保存する」を押してください。全スタッフのアプリに即時反映されます。</div>
+
+    <!-- 毎月クーポン -->
+    <div class="card">
+      <div class="card-head">🏷 毎月クーポン</div>
+      <div class="card-body">
+        <div class="fgrid">
+          <div class="fg"><label>クーポン番号</label><input type="text" id="mc_code" placeholder="epr333"></div>
+          <div class="fg"><label>クーポン名</label><input type="text" id="mc_label" placeholder="毎月クーポン"></div>
+          <div class="fg"><label>割引金額（円）</label><input type="number" id="mc_disc" placeholder="500"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- キャンペーン -->
+    <div class="card">
+      <div class="card-head">
+        🎯 キャンペーン設定
+        <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-export btn-sm" onclick="openExport()">📋 現在の設定を出力</button>
+          <button class="btn btn-import btn-sm" onclick="document.getElementById('excel-file').click()">📂 Excelインポート</button>
+          <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importExcel(this)">
+          <button class="btn btn-outline btn-sm" onclick="downloadTemplate()">📥 様式DL</button>
+          <button class="btn btn-add btn-sm" onclick="addCampaign()">＋ 追加</button>
+        </span>
+      </div>
+      <div class="card-body">
+        <div style="background:var(--nvl);border:2px solid var(--nv);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:800;color:var(--nv);margin-bottom:6px;">📋 JSONを貼り付けて一括適用（クロードが作成したJSONをここに貼り付け）</div>
+          <textarea id="json-import-box" rows="3" style="width:100%;padding:8px 10px;border:1.5px solid var(--bd);border-radius:var(--rs);font-family:monospace;font-size:11px;resize:vertical;outline:none;" placeholder='[{"type":"A","name":"美髪革命CP","date_start":"2026/06/12",...}]'></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
+            <button class="btn btn-save btn-sm" onclick="applyJsonImport()">✅ 適用する</button>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('json-import-box').value=''">🗑 クリア</button>
+            <span id="json-import-msg" style="font-size:11px;font-weight:700;"></span>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;font-size:10px;">
+          <span class="cp-type-badge badge-A">A: 数量割引</span><span style="color:var(--tx3);">サプル×2本18%OFF</span>
+          <span style="color:var(--bd2);">｜</span>
+          <span class="cp-type-badge badge-B">B: 段階割引</span><span style="color:var(--tx3);">1本10%・2本20%</span>
+          <span style="color:var(--bd2);">｜</span>
+          <span class="cp-type-badge badge-C">C: コードクーポン</span>
+          <span style="color:var(--bd2);">｜</span>
+          <span class="cp-type-badge badge-D">D: 金額プレゼント</span>
+          <span style="color:var(--bd2);">｜</span>
+          <span class="cp-type-badge badge-E">E: 累進プレゼント</span>
+          <span style="color:var(--bd2);">｜</span>
+          <span class="cp-type-badge badge-F">F: セット価格</span>
+        </div>
+        <div id="cp-list"></div>
+      </div>
+    </div>
+
+    <!-- コスメ話（1年分） -->
+    <div class="card">
+      <div class="card-head">💄 コスメ話（1年分）</div>
+      <div class="card-body">
+        <div style="font-size:11px;color:var(--tx3);margin-bottom:10px;">各月のコスメ話（同梱サンプル）を登録してください。今月は金色でハイライト表示されます。</div>
+        <div style="border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-1"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">1月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_1" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-2"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">2月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_2" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-3"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">3月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_3" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-4"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">4月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_4" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-5"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">5月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_5" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-6"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">6月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_6" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-7"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">7月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_7" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-8"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">8月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_8" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-9"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">9月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_9" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-10"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">10月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_10" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="cosme-row-11"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">11月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_11" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;" id="cosme-row-12"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">12月</span><div class="fg" style="flex:1;"><input type="text" id="cosme_12" placeholder="例: サプルノーブルパウチ 2包"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BDクーポン（1年分） -->
+    <div class="card">
+      <div class="card-head">🎂 バースデークーポン番号（1年分）</div>
+      <div class="card-body">
+        <div style="background:#fff0f6;border:1.5px solid #e879a0;border-radius:var(--rs);padding:9px 12px;margin-bottom:12px;font-size:11px;color:#7a004a;">
+          💡 プレゼント内容（ミニコスメセット）・最低金額（5,400円）は固定です。月ごとのクーポン番号だけ入力してください。
+        </div>
+        <div style="border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-1"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">1月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_1" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-2"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">2月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_2" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-3"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">3月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_3" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-4"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">4月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_4" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-5"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">5月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_5" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-6"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">6月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_6" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-7"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">7月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_7" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-8"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">8月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_8" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-9"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">9月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_9" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-10"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">10月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_10" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--bd);" id="bd-row-11"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">11月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_11" placeholder="例: HB7788"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 8px;" id="bd-row-12"><span style="font-size:12px;font-weight:800;color:var(--nv);min-width:36px;">12月</span><div class="fg" style="flex:1;"><input type="text" id="bd_code_12" placeholder="例: HB7788"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- パスワード変更 -->
+    <div class="card">
+      <div class="card-head">🔐 パスワード変更</div>
+      <div class="card-body">
+        <div class="pw-row">
+          <div class="fg"><label>現在のパスワード</label><input type="password" id="pw_cur"></div>
+          <div class="fg"><label>新しいパスワード</label><input type="password" id="pw_new"></div>
+          <div class="fg"><label>確認</label><input type="password" id="pw_cf"></div>
+          <button class="btn btn-outline" onclick="changePw()">変更する</button>
+        </div>
+        <div id="pw-msg" style="font-size:11px;font-weight:700;margin-top:6px;display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-bar">
+    <div class="save-info">最終保存: <span id="last-saved">未保存</span></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-outline" onclick="loadSettings()">↩ 再読込</button>
+      <button class="btn btn-save" id="save-btn" onclick="saveSettings()">💾 保存する（全員に反映）</button>
+    </div>
+  </div>
+</div>
+
+<!-- 設定出力モーダル -->
+<div class="modal-overlay" id="export-modal" style="display:none;" onclick="if(event.target===this)closeExport()">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>📋 現在の設定出力</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-export btn-sm" onclick="copyAllExport()">📄 全文コピー</button>
+        <button class="btn btn-outline btn-sm" onclick="closeExport()">✕ 閉じる</button>
+      </div>
+    </div>
+    <div id="export-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbyYVgsHNp6bjciWkA5GZwGe3qDKkjZRH1MLP8OTW5RmOgoo3DLRHKfT_MF5y6ATLHqA/exec';
+let sessionPw = '';
+let campaigns = [];
+let _savedSettings = {};
+
+// ========== LOGIN ==========
+function doLogin() {
+  sessionPw = document.getElementById('pw-inp').value;
+  verifyLogin(sessionPw);
+}
+async function verifyLogin(pw) {
+  try {
+    const res = await fetch(API + '?action=settings&t=' + Date.now());
+    const data = await res.json();
+    const savedPw = data.admin_password || 'eporashe2024';
+    if (pw !== savedPw) { document.getElementById('login-err').style.display='block'; return; }
+    document.getElementById('login-pg').style.display = 'none';
+    document.getElementById('admin-pg').style.display = 'block';
+    fillForm(data);
+    highlightCurrentMonth();
+  } catch(e) {
+    document.getElementById('login-err').style.display='block';
+    document.getElementById('login-err').textContent='⚠ 通信エラー。再度お試しください。';
+  }
+}
+function doLogout() {
+  sessionPw='';
+  document.getElementById('login-pg').style.display='flex';
+  document.getElementById('admin-pg').style.display='none';
+  document.getElementById('pw-inp').value='';
+  document.getElementById('login-err').style.display='none';
+}
+
+function highlightCurrentMonth() {
+  const m = new Date().getMonth() + 1;
+  const row = document.getElementById('cosme-row-' + m);
+  if (row) row.style.background = 'var(--gdl)';
+}
+
+async function loadSettings() {
+  const res = await fetch(API + '?action=settings&t=' + Date.now());
+  const data = await res.json();
+  fillForm(data);
+}
+
+function fillForm(s) {
+  _savedSettings = s;
+  const mc = s.monthly_coupon || {};
+  set('mc_code', mc.code||''); set('mc_label', mc.label||''); set('mc_disc', mc.discount||500);
+  campaigns = (s.campaigns||[]).map(cp => settingsToCampaign(cp));
+  renderCampaigns();
+  const cosme = s.cosme_talk || [];
+  cosme.forEach((c, i) => { set('cosme_' + (i+1), c.this_month || ''); });
+  const bdMonthly = s.bd_monthly || [];
+  bdMonthly.forEach((bd, i) => { set('bd_code_' + (i+1), bd.code || ''); });
+  if (s.updated_at) {
+    document.getElementById('last-saved').textContent = s.updated_at;
+    document.getElementById('hd-updated').textContent = '最終更新: ' + s.updated_at;
+  }
+  highlightCurrentMonth();
+}
+
+// ========== CAMPAIGN UI ==========
+function toInputDate(str) { if (!str) return ''; return str.replace(/\//g, '-'); }
+function toStorageDate(str) { if (!str) return ''; return str.replace(/-/g, '/'); }
+
+function settingsToCampaign(cp) {
+  return {
+    type: cp.type || 'A',
+    name: cp.name || '',
+    period: cp.period || '',
+    date_start: toInputDate(cp.date_start || ''),
+    date_end:   toInputDate(cp.date_end   || ''),
+    announce_date: cp.announce_date || '',
+    products: cp.products || '',
+    rules: cp.rules || [],
+    coupon_code: cp.coupon_code || '',
+    min_amount: cp.min_amount || 0,
+    discount_pct: cp.discount_pct || 0,
+    disc_amount: cp.disc_amount || 0,
+    target_keywords: cp.target_keywords || '',
+    gift_name: cp.gift_name || '',
+    gift_min: cp.gift_min || 0,
+    prog_gift_name: cp.prog_gift_name || '',
+    prog_start: cp.prog_start || 0,
+    prog_step: cp.prog_step || 0,
+    note: cp.note || '',
+  };
+}
+
+function addCampaign(data) {
+  campaigns.push(data || {type:'A', name:'', date_start:'', date_end:'', products:'', rules:[{desc:'',orig_price:0,disc_price:0,pct:0,product_keywords:'',qty:1}]});
+  renderCampaigns();
+}
+function delCampaign(idx) { campaigns.splice(idx, 1); renderCampaigns(); }
+
+function renderCampaigns() {
+  const list = document.getElementById('cp-list');
+  if (!campaigns.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--tx3);">キャンペーンがありません。</div>';
+    return;
+  }
+  list.innerHTML = '';
+  campaigns.forEach((cp, i) => {
+    const block = document.createElement('div');
+    block.className = 'cp-block';
+    block.innerHTML = buildCampaignHTML(cp, i);
+    list.appendChild(block);
+  });
+}
+
+function buildCampaignHTML(cp, i) {
+  const typeOpts = ['A','B','C','D','E','F'].map(t =>
+    `<option value="${t}" ${cp.type===t?'selected':''}>${t}: ${{'A':'数量割引','B':'段階割引','C':'コードクーポン','D':'金額プレゼント','E':'累進プレゼント','F':'セット価格'}[t]}</option>`
+  ).join('');
+  let typeSpecific = '';
+  const type = cp.type || 'A';
+  if (type === 'A' || type === 'B' || type === 'F') {
+    const rulesHTML = (cp.rules||[]).map((r,ri) => `
+      <div class="rule-block">
+        <div class="rule-block-title">パターン ${ri+1}<button class="rule-del" onclick="delRule(${i},${ri})">✕</button></div>
+        <div class="fgrid3">
+          <div class="fg"><label>説明</label><input type="text" value="${r.desc||''}" onchange="updateRule(${i},${ri},'desc',this.value)"></div>
+          <div class="fg"><label>商品キーワード</label><input type="text" value="${r.product_keywords||''}" onchange="updateRule(${i},${ri},'product_keywords',this.value)"></div>
+          <div class="fg"><label>数量</label><input type="number" value="${r.qty||1}" onchange="updateRule(${i},${ri},'qty',this.value)"></div>
+          <div class="fg"><label>通常価格（円）</label><input type="number" value="${r.orig_price||''}" onchange="updateRule(${i},${ri},'orig_price',this.value)"></div>
+          <div class="fg"><label>割引後価格（円）</label><input type="number" value="${r.disc_price||''}" onchange="updateRule(${i},${ri},'disc_price',this.value)"></div>
+          <div class="fg"><label>割引率（%）</label><input type="number" value="${r.pct||''}" onchange="updateRule(${i},${ri},'pct',this.value)"></div>
+        </div>
+      </div>`).join('');
+    typeSpecific = `<div>${rulesHTML}</div><button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="addRule(${i})">＋ パターン追加</button>`;
+  } else if (type === 'C') {
+    typeSpecific = `<div class="fgrid">
+      <div class="fg"><label>クーポンコード</label><input type="text" value="${cp.coupon_code||''}" onchange="updateCp(${i},'coupon_code',this.value)" placeholder="例: epr2000"></div>
+      <div class="fg"><label>固定割引金額（円）※金額OFFの場合</label><input type="number" value="${cp.disc_amount||''}" onchange="updateCp(${i},'disc_amount',this.value)" placeholder="例: 2000"></div>
+      <div class="fg"><label>割引率（%）※%OFFの場合</label><input type="number" value="${cp.discount_pct||''}" onchange="updateCp(${i},'discount_pct',this.value)"></div>
+      <div class="fg"><label>最低購入金額（円）</label><input type="number" value="${cp.min_amount||''}" onchange="updateCp(${i},'min_amount',this.value)"></div>
+      <div class="fg fgrid-full"><label>対象商品キーワード（空欄=全商品）</label><input type="text" value="${cp.target_keywords||''}" onchange="updateCp(${i},'target_keywords',this.value)"></div>
+    </div>`;
+  } else if (type === 'D') {
+    typeSpecific = `<div class="fgrid">
+      <div class="fg"><label>景品名</label><input type="text" value="${cp.gift_name||''}" onchange="updateCp(${i},'gift_name',this.value)"></div>
+      <div class="fg"><label>最低購入金額（円）</label><input type="number" value="${cp.gift_min||''}" onchange="updateCp(${i},'gift_min',this.value)"></div>
+      <div class="fg fgrid-full"><label>備考（受注処理案内）</label><input type="text" value="${cp.note||''}" onchange="updateCp(${i},'note',this.value)" placeholder="例: 見本でコード0793を追加"></div>
+    </div>`;
+  } else if (type === 'E') {
+    typeSpecific = `<div class="fgrid">
+      <div class="fg"><label>景品名</label><input type="text" value="${cp.prog_gift_name||''}" onchange="updateCp(${i},'prog_gift_name',this.value)"></div>
+      <div class="fg"><label>開始金額（円）</label><input type="number" value="${cp.prog_start||''}" onchange="updateCp(${i},'prog_start',this.value)"></div>
+      <div class="fg"><label>増加金額（円）</label><input type="number" value="${cp.prog_step||''}" onchange="updateCp(${i},'prog_step',this.value)"></div>
+      <div class="fg fgrid-full"><label>備考（受注処理案内）</label><input type="text" value="${cp.note||''}" onchange="updateCp(${i},'note',this.value)"></div>
+    </div>`;
+  }
+  return `
+    <div class="cp-block-head" onclick="toggleBlock(this)">
+      <span class="cp-type-badge badge-${type}">${type}</span>
+      <span class="cp-block-title">${cp.name||'（未入力）'} <span style="font-size:10px;font-weight:400;color:var(--tx3);">${cp.date_start||''} 〜 ${cp.date_end||''}${cp.announce_date?'（告知 '+cp.announce_date+'〜）':''}</span></span>
+      <button class="cp-del-btn" onclick="event.stopPropagation();delCampaign(${i})">✕</button>
+    </div>
+    <div class="cp-block-body">
+      <div class="fgrid" style="margin-bottom:8px;">
+        <div class="fg"><label>タイプ</label><select onchange="updateCpType(${i},this.value)">${typeOpts}</select></div>
+        <div class="fg"><label>キャンペーン名</label><input type="text" value="${cp.name||''}" onchange="updateCp(${i},'name',this.value)"></div>
+        <div class="fg"><label>開始日</label><input type="date" value="${cp.date_start||''}" onchange="updateCp(${i},'date_start',this.value)"></div>
+        <div class="fg"><label>終了日</label><input type="date" value="${cp.date_end||''}" onchange="updateCp(${i},'date_end',this.value)"></div>
+        <div class="fg fgrid-full"><label>対象商品名（表示用）</label><input type="text" value="${cp.products||''}" onchange="updateCp(${i},'products',this.value)"></div>
+      </div>
+      ${typeSpecific}
+    </div>`;
+}
+
+function toggleBlock(head) {
+  const body = head.nextElementSibling;
+  body.style.display = body.style.display === 'none' ? 'block' : 'none';
+}
+function updateCp(i, key, val) { campaigns[i][key] = val; }
+function updateCpType(i, val) {
+  campaigns[i].type = val;
+  if ((val==='A'||val==='B'||val==='F') && (!campaigns[i].rules||!campaigns[i].rules.length)) {
+    campaigns[i].rules = [{desc:'',orig_price:0,disc_price:0,pct:0,product_keywords:'',qty:1}];
+  }
+  renderCampaigns();
+}
+function addRule(i) {
+  campaigns[i].rules = campaigns[i].rules || [];
+  campaigns[i].rules.push({desc:'',orig_price:0,disc_price:0,pct:0,product_keywords:'',qty:1});
+  renderCampaigns();
+}
+function delRule(i, ri) { campaigns[i].rules.splice(ri,1); renderCampaigns(); }
+function updateRule(i, ri, key, val) {
+  campaigns[i].rules[ri][key] = (['qty','orig_price','disc_price','pct'].includes(key)) ? Number(val) : val;
+}
+
+// ========== JSON IMPORT ==========
+function applyJsonImport() {
+  const box = document.getElementById('json-import-box');
+  const msg = document.getElementById('json-import-msg');
+  const raw = box.value.trim();
+  if (!raw) { msg.style.color='var(--rd)'; msg.textContent='JSONを入力してください'; return; }
+  try {
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) throw new Error('配列形式で入力してください');
+    campaigns = data.map(cp => settingsToCampaign(cp));
+    renderCampaigns();
+    box.value = '';
+    msg.style.color = 'var(--ok)';
+    msg.textContent = '✅ ' + campaigns.length + '件を適用しました！「保存する」を押して確定してください。';
+  } catch(e) {
+    msg.style.color = 'var(--rd)';
+    msg.textContent = '❌ JSONエラー：' + e.message;
+  }
+}
+
+// ========== EXCEL IMPORT ==========
+function downloadTemplate() {
+  const wb = XLSX.utils.book_new();
+  const headers = ['タイプ','キャンペーン名','開始日','終了日','商品キーワード','数量','通常価格','割引後価格','割引率(%)','クーポンコード','最低金額','景品名','景品開始金額','景品増加金額','備考'];
+  const ws = XLSX.utils.aoa_to_sheet([headers]);
+  ws['!cols'] = headers.map(() => ({wch:14}));
+  XLSX.utils.book_append_sheet(wb, ws, 'キャンペーン');
+  XLSX.writeFile(wb, 'campaign_template.xlsx');
+}
+function importExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'binary'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      if (rows.length < 2) return;
+      const dataRows = rows.slice(1).filter(r=>r[0]&&r[1]);
+      const map={}, order=[];
+      dataRows.forEach(r=>{
+        const type=(r[0]||'').toString().trim().toUpperCase();
+        const name=(r[1]||'').toString().trim();
+        const key=type+'|'+name;
+        if(!map[key]){
+          const base={type,name,date_start:(r[2]||'').toString(),date_end:(r[3]||'').toString(),products:(r[4]||'').toString(),note:(r[14]||'').toString()};
+          if(type==='A'||type==='B'||type==='F') base.rules=[];
+          else if(type==='C'){base.coupon_code=(r[9]||'').toString();base.discount_pct=Number(r[8])||0;base.min_amount=Number(r[10])||0;base.target_keywords=(r[4]||'').toString();}
+          else if(type==='D'){base.gift_name=(r[11]||'').toString();base.gift_min=Number(r[10])||0;}
+          else if(type==='E'){base.prog_gift_name=(r[11]||'').toString();base.prog_start=Number(r[12])||0;base.prog_step=Number(r[13])||0;}
+          map[key]=base;order.push(key);
+        }
+        if(type==='A'||type==='B'||type==='F'){
+          map[key].rules.push({desc:(r[4]||'').toString()+(Number(r[5])>1?'×'+r[5]+'本':''),orig_price:Number(r[6])||0,disc_price:Number(r[7])||0,pct:Number(r[8])||0,product_keywords:(r[4]||'').toString(),qty:Number(r[5])||1});
+        }
+      });
+      campaigns = order.map(k=>settingsToCampaign(map[k]));
+      renderCampaigns();
+      showToast('✅ ' + campaigns.length + '件をインポートしました', 'ok');
+    } catch(e) {
+      showToast('❌ インポートエラー: ' + e.message, 'err');
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ========== 設定出力 ==========
+function openExport() {
+  const s = _savedSettings;
+  const mc = s.monthly_coupon || {};
+  const bd = s.bd_monthly || [];
+  const cosme = s.cosme_talk || [];
+  const now = new Date();
+  const thisMonth = now.getMonth() + 1;
+  const today = now.toLocaleDateString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'/');
+
+  // 現在有効なキャンペーンと全キャンペーン
+  const activeCps = (s.campaigns||[]).filter(cp=>{
+    if(!cp.date_start||!cp.date_end) return true;
+    const s2=new Date(cp.date_start.replace(/\//g,'-'));
+    const e=new Date(cp.date_end.replace(/\//g,'-'));
+    e.setHours(23,59,59);
+    return now>=s2 && now<=e;
+  });
+  const allCps = s.campaigns||[];
+
+  const typeLabel={A:'数量割引',B:'段階割引',C:'コードクーポン',D:'金額プレゼント',E:'累進プレゼント',F:'セット価格'};
+  const typeBadge={A:'#2d6a4f',B:'#92500a',C:'#6d28d9',D:'#b8832a',E:'#b91c1c',F:'#1a3a5c'};
+
+  function cpDetail(cp) {
+    let lines = [];
+    lines.push(`期間：${cp.date_start||'?'} 〜 ${cp.date_end||'?'}`);
+    if(cp.announce_date) lines.push(`告知開始日：${cp.announce_date}`);
+    if(cp.products) lines.push(`対象商品：${cp.products}`);
+    if(cp.type==='C'){
+      lines.push(`コード：${cp.coupon_code||''}`);
+      if(cp.disc_amount) lines.push(`割引額：¥${Number(cp.disc_amount).toLocaleString()}OFF`);
+      else if(cp.discount_pct) lines.push(`割引率：${cp.discount_pct}%OFF`);
+      if(cp.min_amount) lines.push(`最低金額：¥${Number(cp.min_amount).toLocaleString()}以上`);
+    } else if(cp.type==='D'){
+      lines.push(`景品：${cp.gift_name||''}`);
+      if(cp.gift_min) lines.push(`最低金額：¥${Number(cp.gift_min).toLocaleString()}以上`);
+      if(cp.note) lines.push(`受注処理：${cp.note}`);
+    } else if(cp.type==='E'){
+      lines.push(`景品：${cp.prog_gift_name||''}`);
+      lines.push(`開始金額：¥${Number(cp.prog_start).toLocaleString()} / 増加：¥${Number(cp.prog_step).toLocaleString()}`);
+      if(cp.note) lines.push(`受注処理：${cp.note}`);
+    } else if(cp.rules&&cp.rules.length){
+      cp.rules.forEach(r=>{
+        lines.push(`${r.desc||''}：¥${Number(r.orig_price).toLocaleString()}→¥${Number(r.disc_price).toLocaleString()}（${r.pct}%OFF）`);
+      });
+    }
+    return lines;
+  }
+
+  // テキスト形式（コピペ用）
+  const textLines = [];
+  textLines.push('━━━━━━━━━━━━━━━━━━━━━━━━');
+  textLines.push(`エポラーシェ 現在の設定  ${today}時点`);
+  textLines.push('━━━━━━━━━━━━━━━━━━━━━━━━');
+  textLines.push('');
+  textLines.push('【毎月クーポン】');
+  textLines.push(`コード：${mc.code||''}  名称：${mc.label||''}  割引：¥${mc.discount||0}`);
+  textLines.push('');
+  textLines.push(`【バースデークーポン ${thisMonth}月】`);
+  const bdThis = bd.find(b=>b.month===thisMonth)||{};
+  textLines.push(`コード：${bdThis.code||'未設定'}  内容：ミニコスメセットプレゼント（¥5,400以上）`);
+  textLines.push('');
+  textLines.push(`【コスメ話 ${thisMonth}月】`);
+  const cosmeThis = cosme.find(c=>c.month===thisMonth)||{};
+  textLines.push(cosmeThis.this_month||'未設定');
+  textLines.push('');
+  textLines.push(`【有効中のキャンペーン（${activeCps.length}件）】`);
+  activeCps.forEach(cp=>{
+    textLines.push(`■ ${cp.name} [${typeLabel[cp.type]||cp.type}]`);
+    cpDetail(cp).forEach(l=>textLines.push(`  ${l}`));
+  });
+  if(allCps.length > activeCps.length){
+    const futureCps = allCps.filter(cp=>{
+      if(!cp.date_start) return false;
+      const s2=new Date(cp.date_start.replace(/\//g,'-'));
+      return s2>now;
+    });
+    if(futureCps.length){
+      textLines.push('');
+      textLines.push(`【開始前のキャンペーン（${futureCps.length}件）】`);
+      futureCps.forEach(cp=>{
+        textLines.push(`■ ${cp.name} [${typeLabel[cp.type]||cp.type}]`);
+        cpDetail(cp).forEach(l=>textLines.push(`  ${l}`));
+      });
+    }
+  }
+  const exportText = textLines.join('\n');
+
+  const html = `
+    <div style="margin-bottom:12px;padding:8px 12px;background:var(--okl);border:1.5px solid var(--ok);border-radius:var(--rs);font-size:11px;color:var(--ok);font-weight:700;">
+      ✅ クロードへの質問時はこの画面をスクショするか「全文コピー」してそのまま貼り付けてください
+    </div>
+
+    <div class="export-section">
+      <h3>🏷 毎月クーポン</h3>
+      <div class="export-row"><span class="export-label">コード</span><span class="export-val">${mc.code||'—'}</span></div>
+      <div class="export-row"><span class="export-label">名称</span><span class="export-val">${mc.label||'—'}</span></div>
+      <div class="export-row"><span class="export-label">割引金額</span><span class="export-val">¥${(mc.discount||0).toLocaleString()}</span></div>
+    </div>
+
+    <div class="export-section">
+      <h3>🎂 バースデークーポン（${thisMonth}月）</h3>
+      <div class="export-row"><span class="export-label">コード</span><span class="export-val">${bdThis.code||'未設定'}</span></div>
+      <div class="export-row"><span class="export-label">内容</span><span class="export-val">ミニコスメセットプレゼント（¥5,400以上）</span></div>
+    </div>
+
+    <div class="export-section">
+      <h3>💄 コスメ話（${thisMonth}月）</h3>
+      <div class="export-row"><span class="export-label">今月</span><span class="export-val">${cosmeThis.this_month||'未設定'}</span></div>
+    </div>
+
+    <div class="export-section">
+      <h3>🎯 有効中のキャンペーン（${activeCps.length}件）</h3>
+      ${activeCps.length ? activeCps.map(cp=>`
+        <div class="export-cp-item">
+          <div class="export-cp-name">
+            <span style="display:inline-block;background:${typeBadge[cp.type]||'#888'};color:#fff;font-size:9px;padding:1px 6px;border-radius:3px;margin-right:6px;font-weight:800;">${cp.type}</span>
+            ${cp.name}
+          </div>
+          <div class="export-cp-detail">${cpDetail(cp).map(l=>`• ${l}`).join('<br>')}</div>
+        </div>`).join('') : '<div style="color:var(--tx3);font-size:12px;padding:8px 0;">現在有効なキャンペーンはありません</div>'}
+    </div>
+
+    ${allCps.filter(cp=>{if(!cp.date_start)return false;return new Date(cp.date_start.replace(/\//g,'-'))>now;}).length ? `
+    <div class="export-section">
+      <h3>⏳ 開始前のキャンペーン</h3>
+      ${allCps.filter(cp=>{if(!cp.date_start)return false;return new Date(cp.date_start.replace(/\//g,'-'))>now;}).map(cp=>`
+        <div class="export-cp-item">
+          <div class="export-cp-name">
+            <span style="display:inline-block;background:${typeBadge[cp.type]||'#888'};color:#fff;font-size:9px;padding:1px 6px;border-radius:3px;margin-right:6px;font-weight:800;">${cp.type}</span>
+            ${cp.name}
+          </div>
+          <div class="export-cp-detail">${cpDetail(cp).map(l=>`• ${l}`).join('<br>')}</div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <div class="export-section">
+      <h3>📄 全文コピー用テキスト</h3>
+      <textarea id="export-text-area" readonly style="width:100%;height:200px;padding:10px;font-family:monospace;font-size:11px;border:1.5px solid var(--bd);border-radius:var(--rs);resize:vertical;background:var(--sf);">${exportText}</textarea>
+    </div>
+  `;
+
+  document.getElementById('export-content').innerHTML = html;
+  document.getElementById('export-modal').style.display = 'flex';
+}
+
+function closeExport() {
+  document.getElementById('export-modal').style.display = 'none';
+}
+
+function copyAllExport() {
+  const ta = document.getElementById('export-text-area');
+  if(ta){ ta.select(); document.execCommand('copy'); showToast('✅ コピーしました！', 'ok'); }
+}
+
+// ========== SAVE ==========
+async function saveSettings() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = '保存中…';
+  const apiCampaigns = campaigns.map(cp => {
+    const base = {type:cp.type, name:cp.name, date_start:toStorageDate(cp.date_start||''), date_end:toStorageDate(cp.date_end||''), period:cp.period||'', products:cp.products, note:cp.note||'', announce_date:cp.announce_date||''};
+    if(cp.type==='A'||cp.type==='B'||cp.type==='F') base.rules=cp.rules;
+    else if(cp.type==='C'){base.coupon_code=cp.coupon_code;base.discount_pct=Number(cp.discount_pct);base.disc_amount=Number(cp.disc_amount||0);base.min_amount=Number(cp.min_amount);base.target_keywords=cp.target_keywords;}
+    else if(cp.type==='D'){base.gift_name=cp.gift_name;base.gift_min=Number(cp.gift_min);}
+    else if(cp.type==='E'){base.prog_gift_name=cp.prog_gift_name;base.prog_start=Number(cp.prog_start);base.prog_step=Number(cp.prog_step);}
+    return base;
+  });
+  const cosmeTalk = Array.from({length:12}, (_,i) => ({month:i+1,this_month:get('cosme_'+(i+1))}));
+  const bdMonthly = Array.from({length:12}, (_,i) => ({month:i+1,code:get('bd_code_'+(i+1)),gift:'ミニコスメセットプレゼント',min_amt:5400}));
+  const body = {
+    password:sessionPw,
+    mc_code:get('mc_code'),mc_label:get('mc_label'),mc_disc:get('mc_disc'),
+    campaigns_json:JSON.stringify(apiCampaigns),
+    cosme_talk_json:JSON.stringify(cosmeTalk),
+    bd_monthly_json:JSON.stringify(bdMonthly),
+  };
+  try {
+    await fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body)});
+    btn.disabled=false;btn.textContent='💾 保存する（全員に反映）';
+    const now=new Date().toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'});
+    document.getElementById('last-saved').textContent=now;
+    // _savedSettingsを更新
+    _savedSettings.campaigns = apiCampaigns;
+    _savedSettings.monthly_coupon = {code:get('mc_code'),label:get('mc_label'),discount:Number(get('mc_disc'))};
+    showToast('✅ 保存しました！', 'ok');
+  } catch(e) {
+    btn.disabled=false;btn.textContent='💾 保存する（全員に反映）';
+    showToast('❌ 通信エラー：'+e.message,'err');
+  }
+}
+
+// ========== PASSWORD ==========
+async function changePw() {
+  const cur=get('pw_cur'),nw=get('pw_new'),cf=get('pw_cf');
+  const msg=document.getElementById('pw-msg');
+  msg.style.display='block';
+  if(!cur||!nw){msg.style.color='var(--rd)';msg.textContent='全て入力してください';return;}
+  if(nw!==cf){msg.style.color='var(--rd)';msg.textContent='新しいパスワードが一致しません';return;}
+  const pwBody={action:'change_password',current_password:cur,new_password:nw};
+  const res=await fetch(API+'?method=post&data='+encodeURIComponent(JSON.stringify(pwBody)),{method:'GET'});
+  const data=await res.json();
+  if(data.ok){sessionPw=nw;msg.style.color='var(--ok)';msg.textContent='✅ 変更しました';['pw_cur','pw_new','pw_cf'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); }
+  else{msg.style.color='var(--rd)';msg.textContent='❌ '+(data.error||'失敗しました');}
+}
+
+function set(id,val){const el=document.getElementById(id);if(el)el.value=val==null?'':val;}
+function get(id){const el=document.getElementById(id);return el?el.value:'';}
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast toast-'+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>

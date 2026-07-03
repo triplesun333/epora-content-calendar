@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エポラーシェ コンテンツカレンダー</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700;800&family=Shippori+Mincho:wght@500;700&display=swap');
+:root{
+  --bg:#edeae4;--wh:#fff;--sf:#f7f4ef;
+  --bd:#ddd8d0;--bd2:#c5bdb4;
+  --nv:#1a3a5c;--nv2:#2e5f8a;--nvl:#e8f0f8;
+  --gd:#b8832a;--gdl:#fef6e4;
+  --ok:#1e6b45;--okl:#e4f5ec;
+  --rd:#b91c1c;--rdl:#fef2f2;
+  --cp:#6d28d9;--cpl:#f3eeff;
+  --tx:#1a1410;--tx2:#4a3f35;--tx3:#8a7d72;
+  --r:10px;--rs:6px;
+  --sh:0 2px 10px rgba(0,0,0,.09);--sh2:0 6px 24px rgba(0,0,0,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'M PLUS 1p',sans-serif;background:var(--bg);color:var(--tx);font-size:13px;line-height:1.6;}
+
+.hd{background:var(--nv);height:48px;display:flex;align-items:center;padding:0 14px;gap:10px;box-shadow:0 2px 6px rgba(0,0,0,.3);position:sticky;top:0;z-index:100;}
+.hd-logo{font-family:'Shippori Mincho',serif;font-size:14px;color:#fff;letter-spacing:.06em;white-space:nowrap;}
+.hd-logo span{color:#f0c87a;}
+.hd-sp{flex:1;}
+.hd-upd{color:rgba(255,255,255,.6);font-size:10px;white-space:nowrap;}
+.hd-btn{padding:4px 12px;border-radius:14px;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;}
+.hd-btn:hover{background:rgba(255,255,255,.15);}
+
+.main{max-width:860px;margin:0 auto;padding:14px 10px 60px;}
+
+/* 月ナビ */
+.mnav{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:10px;}
+.mnav-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--bd2);background:#fff;color:var(--nv);font-size:15px;font-weight:800;cursor:pointer;transition:.15s;}
+.mnav-btn:hover{border-color:var(--nv);background:var(--nvl);}
+.mnav-label{font-family:'Shippori Mincho',serif;font-size:19px;font-weight:700;color:var(--nv);letter-spacing:.08em;min-width:150px;text-align:center;}
+
+/* 凡例 */
+.legend{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;font-size:10px;color:var(--tx3);}
+.legend b{font-weight:800;}
+.lg-cp{color:var(--gd);}
+.lg-rec{color:var(--cp);}
+
+/* カレンダー */
+.cal{background:var(--wh);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);background:var(--nv);}
+.cal-week div{padding:6px 2px;text-align:center;font-size:10px;font-weight:800;color:#fff;letter-spacing:.05em;}
+.cal-week div:first-child{color:#f3b0b0;}
+.cal-week div:last-child{color:#a9c8ea;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+.cell{min-height:76px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:4px 4px 5px;cursor:pointer;transition:background .12s;position:relative;display:flex;flex-direction:column;gap:2px;background:#fff;}
+.cell:nth-child(7n){border-right:none;}
+.cell:hover{background:var(--nvl);}
+.cell.other{background:var(--sf);cursor:default;}
+.cell.other:hover{background:var(--sf);}
+.cell.today{outline:2.5px solid var(--gd);outline-offset:-2.5px;background:var(--gdl);}
+.cell.is-cp{background:#fdf7ea;}
+.cell.is-cp:hover{background:#faf0d8;}
+.dnum{font-size:11px;font-weight:800;color:var(--tx2);}
+.cell.sun .dnum{color:var(--rd);}
+.cell.sat .dnum{color:var(--nv2);}
+.dprod{font-size:9.5px;font-weight:700;color:var(--nv);line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-all;}
+.dbadge{display:inline-block;font-size:8px;font-weight:800;border-radius:3px;padding:0 4px;line-height:1.5;align-self:flex-start;}
+.b-cp{background:var(--gd);color:#fff;}
+.b-rec{background:var(--cp);color:#fff;}
+.dmiss{font-size:8px;color:var(--rd);font-weight:700;}
+
+/* ローディング / エラー */
+.notice{background:var(--wh);border:1.5px solid var(--bd);border-radius:var(--r);padding:22px;text-align:center;color:var(--tx3);margin-top:20px;box-shadow:var(--sh);}
+.notice.err{border-color:var(--rd);color:var(--rd);text-align:left;font-size:12px;line-height:1.9;}
+
+/* モーダル */
+.ov{display:none;position:fixed;inset:0;background:rgba(20,16,10,.55);z-index:500;overflow-y:auto;padding:14px 8px;}
+.ov.on{display:block;}
+.sheet{background:#fff;max-width:680px;margin:0 auto;border-radius:var(--r);box-shadow:var(--sh2);overflow:hidden;}
+.sheet-hd{background:var(--nv);color:#fff;padding:13px 16px;display:flex;align-items:flex-start;gap:10px;}
+.sheet-date{font-size:10px;color:rgba(255,255,255,.65);font-weight:700;letter-spacing:.05em;}
+.sheet-name{font-family:'Shippori Mincho',serif;font-size:17px;letter-spacing:.04em;line-height:1.4;}
+.sheet-copy{font-size:11px;color:#f0c87a;margin-top:2px;}
+.sheet-x{margin-left:auto;width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;}
+.sheet-x:hover{background:rgba(255,255,255,.35);}
+.sheet-bd{padding:14px 14px 18px;}
+.cp-band{background:var(--gdl);border:1.5px solid var(--gd);border-radius:var(--rs);padding:8px 12px;font-size:11px;color:#7a5215;margin-bottom:12px;line-height:1.7;}
+.cp-band b{color:var(--gd);}
+.miss-band{background:var(--rdl);border:1.5px solid var(--rd);border-radius:var(--rs);padding:8px 12px;font-size:11px;color:var(--rd);margin-bottom:12px;line-height:1.7;}
+
+.out-sec{border:1px solid var(--bd);border-radius:var(--rs);margin-bottom:10px;overflow:hidden;}
+.out-hd{background:var(--sf);padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bd);}
+.out-title{font-size:11.5px;font-weight:800;color:var(--nv);flex:1;}
+.copy-btn{padding:4px 14px;border-radius:12px;border:none;background:var(--nv);color:#fff;font-family:inherit;font-size:10.5px;font-weight:800;cursor:pointer;transition:.15s;white-space:nowrap;}
+.copy-btn:hover{background:var(--nv2);}
+.copy-btn.done{background:var(--ok);}
+.out-body textarea{width:100%;border:none;padding:10px 12px;font-family:inherit;font-size:11px;line-height:1.75;color:var(--tx2);resize:vertical;outline:none;background:#fff;display:block;}
+
+.foot-note{font-size:10px;color:var(--tx3);text-align:center;margin-top:14px;line-height:1.8;}
+
+@media(max-width:520px){
+  .cell{min-height:64px;}
+  .dprod{font-size:8.5px;-webkit-line-clamp:3;}
+  .mnav-label{font-size:16px;min-width:120px;}
+  .sheet-name{font-size:15px;}
+}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="hd-logo"><span>✦</span> エポラーシェ コンテンツカレンダー</div>
+  <div class="hd-sp"></div>
+  <div class="hd-upd" id="hd-upd"></div>
+  <button class="hd-btn" onclick="loadData(true)">↻ 再読込</button>
+</header>
+
+<div class="main">
+  <div class="mnav">
+    <button class="mnav-btn" onclick="moveMonth(-1)">◀</button>
+    <div class="mnav-label" id="mnav-label"></div>
+    <button class="mnav-btn" onclick="moveMonth(1)">▶</button>
+  </div>
+  <div class="legend">
+    <span class="lg-cp"><b>■ 金色</b>＝キャンペーン商品の日</span>
+    <span class="lg-rec"><b>■ 紫バッジ</b>＝今月のおすすめ（水曜）</span>
+    <span><b>金枠</b>＝今日</span>
+  </div>
+  <div id="cal-wrap"></div>
+  <div class="foot-note">
+    日付をタップすると、その日の漫画プロンプト・商品紹介文・キャプションが表示されます。<br>
+    商品の内容は受注アプリのスプレッドシート「SNS商品」シート、おすすめは「カレンダー設定」シートで編集できます。
+  </div>
+</div>
+
+<!-- 出力モーダル -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div>
+        <div class="sheet-date" id="sh-date"></div>
+        <div class="sheet-name" id="sh-name"></div>
+        <div class="sheet-copy" id="sh-copy"></div>
+      </div>
+      <button class="sheet-x" onclick="closeSheet()">✕</button>
+    </div>
+    <div class="sheet-bd" id="sh-body"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  設定
+// ============================================================
+const GAS = 'https://script.google.com/macros/s/AKfycbyYVgsHNp6bjciWkA5GZwGe3qDKkjZRH1MLP8OTW5RmOgoo3DLRHKfT_MF5y6ATLHqA/exec';
+
+// ── 漫画プロンプト：画風固定ブロック（変更しないこと） ──
+const STYLE_BLOCK = `Delicate European storybook illustration style, gentle vintage atmosphere, warm and nostalgic yet quietly sophisticated.
+Line art: thin, delicate, slightly uneven hand-inked lines — consistent fine weight throughout, NOT rough or heavily varied, NOT cross-hatched shading. Shading is built with soft watercolor tone gradation only, never with hatching lines, never with flat anime cel-shading, never with sharp digital gradients, never with glossy anime-style highlights on the eyes.
+Coloring: pale, muted watercolor wash — visible bleeding and unevenness at edges, soft paper grain showing through the color. Warm ivory-cream paper background throughout. Limited palette: sage green, warm honey-brown (wood, books), soft cream, faint dusty blue, muted gold light. No flat saturated digital color, no vibrant anime palette.
+Character (consistent across all panels): a beautiful Japanese woman, graceful and elegant, with long softly waving chestnut-brown hair falling past her shoulders, parted gently to one side, warm brown almond eyes with a calm, kind and quietly perceptive gaze, softly defined eyebrows, a gentle natural smile, an air of refined warmth and quiet confidence. She is a beauty researcher. Wearing a muted vermilion-red off-shoulder blouse with a softly gathered ruffle neckline and a thin delicate necklace (or a simple cream knit cardigan in home scenes, simple pale loungewear in night scenes).
+Composition: cinematic pacing with generous white space and deliberate breathing gaps between panels — panels are not tightly packed, negative space is part of the design. Small botanical elements (thin leaf branches, potted plants) are allowed to overflow panel borders into the white margin for an organic layered feel. Mix extreme close-ups (eyes, hands, small objects like a cosmetic bottle, a teacup or an open research notebook), profile shots, and half-body cuts. Warm backlight and window light recur as a visual motif. Blurred background figures may appear small and distant in outdoor scenes.
+Text elements: two distinct types — (1) small rounded hand-drawn speech/thought bubbles directly on the character for brief interior murmurs, and (2) separate torn-paper note captions (drawn as if taped to the page with visible washi-tape corners) for reflective narration lines. Japanese text is short, natural handwritten font, never long paragraphs. No anime-style bold sound effect text.
+Background: minimal — torn paper scraps taped at the corners, a few handwritten words, small potted plants, books, a writing desk, soft abstract linework, generous cream-white space. Entire page has a faint watercolor paper texture with soft ink bleed for a warm handmade feel. Avoid clean vector-flat digital backgrounds.
+Vertical portrait ratio (9:16), asymmetric panel grid with 5 to 7 panels per page, thin light panel borders, deliberate visual gaps between panels. High resolution.`;
+
+// ── 固定ハッシュタグ（合計5個以内厳守） ──
+const BASE_TAGS = ['#エポラーシェ', '#岡江美希', '#無添加化粧品'];
+
+// ============================================================
+//  状態
+// ============================================================
+let DATA = null;          // {campaigns, sns_products, monthly_recommend, products, updated_at}
+let viewY, viewM;         // 表示中の年・月（Mは0始まり）
+
+const WD = ['日','月','火','水','木','金','土'];
+const todayD = new Date(); todayD.setHours(0,0,0,0);
+
+// ============================================================
+//  データ取得
+// ============================================================
+async function loadData(force){
+  const wrap = document.getElementById('cal-wrap');
+  wrap.innerHTML = '<div class="notice">📡 データを読み込み中…</div>';
+  try{
+    const res = await fetch(GAS + '?action=calendar&t=' + Date.now());
+    DATA = await res.json();
+    if(DATA.error) throw new Error(DATA.error);
+    document.getElementById('hd-upd').textContent = DATA.updated_at ? '設定更新: ' + DATA.updated_at : '';
+    if(!DATA.sns_products || !DATA.sns_products.length){
+      wrap.innerHTML = '<div class="notice err"><b>「SNS商品」シートが空、またはGASが未更新です。</b><br>'
+        + '① Code.gs にカレンダー用の追加コードが反映され、再デプロイされているか確認してください。<br>'
+        + '② スプレッドシートに「SNS商品」シートを作成し、A列:商品名 / B列:キャッチコピー / C列:特徴 / D列:追加ハッシュタグ / E列:備考 を入力してください。</div>';
+      return;
+    }
+    renderCal();
+  }catch(e){
+    wrap.innerHTML = '<div class="notice err"><b>読み込みエラー：</b>' + e.message + '<br>GASのデプロイURL・追加コードの反映を確認してください。</div>';
+  }
+}
+
+// ============================================================
+//  日付ユーティリティ
+// ============================================================
+function parseYMD(str){
+  if(!str) return null;
+  const d = new Date(String(str).replace(/\//g,'-') + 'T00:00:00');
+  return isNaN(d) ? null : d;
+}
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function dayNum(d){ return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
+function fmtMD(str){ return String(str||'').replace(/^\d{4}\//,''); }
+
+// キャンペーンの「告知開始日」= announce_date 優先、なければ date_start
+function cpAnnounceStart(cp){ return parseYMD(cp.announce_date || cp.date_start); }
+function cpEnd(cp){ const e = parseYMD(cp.date_end); if(e) e.setHours(23,59,59,999); return e; }
+function cpActiveOn(cp, d){
+  const s = cpAnnounceStart(cp), e = cpEnd(cp);
+  if(s && d < s) return false;
+  if(e && d > e) return false;
+  return !!(s || e);
+}
+
+// キャンペーン内容の要約文
+function cpSummary(cp){
+  if(cp.type==='C') return 'クーポン【' + (cp.coupon_code||'') + '】' + (cp.disc_amount ? '¥'+Number(cp.disc_amount).toLocaleString()+'OFF' : (cp.discount_pct ? cp.discount_pct+'%OFF' : '')) + (cp.min_amount ? '（¥'+Number(cp.min_amount).toLocaleString()+'以上）' : '');
+  if(cp.type==='D') return '¥' + Number(cp.gift_min||0).toLocaleString() + '以上のご購入で【' + (cp.gift_name||'') + '】プレゼント';
+  if(cp.type==='E') return '¥' + Number(cp.prog_start||0).toLocaleString() + '以上のご購入で【' + (cp.prog_gift_name||'') + '】プレゼント（金額に応じて増加）';
+  if(cp.rules && cp.rules.length) return cp.rules.map(r => (r.desc||'') + ' ¥' + Number(r.disc_price||0).toLocaleString() + (r.pct ? '（'+r.pct+'%OFF）' : '')).join(' ／ ');
+  return '';
+}
+
+// ============================================================
+//  日別の商品割り当て
+//  優先度: ①CP開始日+翌日（複数商品は1日1商品ずつ） ②水曜=月間おすすめ ③通常ローテ
+// ============================================================
+function assignDay(d){
+  const sns = DATA.sns_products;
+
+  // ① キャンペーン開始日・翌日
+  for(const cp of (DATA.campaigns||[])){
+    const names = String(cp.products||'').split(',').map(s=>s.trim()).filter(Boolean);
+    if(!names.length) continue;
+    const start = cpAnnounceStart(cp);
+    if(!start) continue;
+    for(let i=0;i<names.length;i++){
+      const slot = new Date(start); slot.setDate(slot.getDate()+i);
+      const e = cpEnd(cp);
+      if(e && slot > e) break;
+      if(sameDay(d, slot)){
+        const hit = sns.find(p => p.name === names[i]) ||
+                    sns.find(p => p.name.indexOf(names[i]) !== -1 || names[i].indexOf(p.name) !== -1);
+        return { product: hit || {name:names[i], copy:'', features:'', tags:'', _missing:true},
+                 kind:'cp', campaign: cp };
+      }
+    }
+  }
+
+  // ② 水曜日 = 今月のおすすめ
+  if(d.getDay() === 3){
+    const rec = (DATA.monthly_recommend||[]).find(r => r.month === d.getMonth()+1);
+    if(rec && rec.products.length){
+      const wk = Math.floor((d.getDate()-1)/7);
+      const nm = rec.products[wk % rec.products.length];
+      const hit = sns.find(p => p.name === nm) ||
+                  sns.find(p => p.name.indexOf(nm) !== -1 || nm.indexOf(p.name) !== -1);
+      return { product: hit || {name:nm, copy:'', features:'', tags:'', _missing:true}, kind:'rec' };
+    }
+  }
+
+  // ③ 通常ローテーション
+  const p = sns[dayNum(d) % sns.length];
+  return { product: p, kind:'normal' };
+}
+
+// その日の商品に有効なキャンペーンが被っていれば返す（②③の日でもCP情報を差し込むため）
+function findCampaignFor(product, d){
+  for(const cp of (DATA.campaigns||[])){
+    if(!cpActiveOn(cp, d)) continue;
+    const names = String(cp.products||'').split(',').map(s=>s.trim()).filter(Boolean);
+    if(names.some(n => product.name === n || product.name.indexOf(n)!==-1 || n.indexOf(product.name)!==-1)) return cp;
+  }
+  return null;
+}
+
+// ============================================================
+//  カレンダー描画
+// ============================================================
+function moveMonth(diff){
+  viewM += diff;
+  if(viewM < 0){ viewM = 11; viewY--; }
+  if(viewM > 11){ viewM = 0; viewY++; }
+  renderCal();
+}
+
+function renderCal(){
+  document.getElementById('mnav-label').textContent = viewY + '年 ' + (viewM+1) + '月';
+  const wrap = document.getElementById('cal-wrap');
+  const first = new Date(viewY, viewM, 1);
+  const lastDate = new Date(viewY, viewM+1, 0).getDate();
+  const lead = first.getDay();
+
+  let html = '<div class="cal"><div class="cal-week">' + WD.map(w=>'<div>'+w+'</div>').join('') + '</div><div class="cal-grid">';
+  for(let i=0;i<lead;i++) html += '<div class="cell other"></div>';
+  for(let day=1;day<=lastDate;day++){
+    const d = new Date(viewY, viewM, day);
+    const a = assignDay(d);
+    const isToday = sameDay(d, todayD);
+    const cls = ['cell'];
+    if(d.getDay()===0) cls.push('sun');
+    if(d.getDay()===6) cls.push('sat');
+    if(isToday) cls.push('today');
+    if(a.kind==='cp') cls.push('is-cp');
+    let badge = '';
+    if(a.kind==='cp') badge = '<span class="dbadge b-cp">🎯 CP</span>';
+    else if(a.kind==='rec') badge = '<span class="dbadge b-rec">⭐ おすすめ</span>';
+    const miss = a.product._missing ? '<span class="dmiss">⚠ 情報未登録</span>' : '';
+    html += '<div class="'+cls.join(' ')+'" onclick="openSheet('+viewY+','+viewM+','+day+')">'
+          + '<span class="dnum">'+day+'</span>' + badge
+          + '<span class="dprod">'+esc(a.product.name)+'</span>' + miss + '</div>';
+  }
+  const tail = (lead + lastDate) % 7;
+  if(tail !== 0) for(let i=tail;i<7;i++) html += '<div class="cell other"></div>';
+  html += '</div></div>';
+  wrap.innerHTML = html;
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+//  価格の取得（商品シートと名前一致で照合）
+// ============================================================
+function findPrice(name){
+  const list = (DATA.products||[]).filter(p => p.name === name);
+  if(!list.length) return '';
+  const prices = list.map(p => Number(p.price)||0).filter(n => n>0);
+  if(!prices.length) return '';
+  const min = Math.min(...prices);
+  return '¥' + min.toLocaleString() + '（税込）' + (prices.length>1 ? '〜' : '');
+}
+
+// ============================================================
+//  出力テンプレート
+// ============================================================
+function buildComic(p, cp){
+  let theme = '【今日のテーマ商品】\n商品名：' + p.name;
+  if(p.copy) theme += '\nキャッチコピー：' + p.copy;
+  if(p.features) theme += '\n特徴：\n' + p.features;
+  if(cp) theme += '\n開催中のキャンペーン：' + cp.name + '（' + cpSummary(cp) + '／' + fmtMD(cp.date_end) + 'まで）';
+  const inst = `【ストーリー構成の指示】
+上記のスタイル・キャラクター設定（美容研究家の女性）を一切崩さずに、このテーマ商品にまつわる日常の小さなエピソードを5〜7コマで構成してください。
+- 直接的な宣伝ではなく、彼女の暮らしや研究室でのひとこまとして、静かで余韻のある物語にする
+- 各コマに「情景」と、紙メモキャプションまたは丸い吹き出し（心の声）を1つずつ付ける
+- コマ割りは大きめ・極小・横長・縦長を織り交ぜ、最後のコマは余韻を残す締めにする
+- 化粧品の効果効能を断定する表現（改善・治る・効く・予防・美白される 等）は絶対に使わない。「整える」「ケアする」「心地よい」「寄り添う」などのやわらかい表現のみ使用する
+- セリフ・キャプションはすべて日本語で、短く自然に`;
+  return STYLE_BLOCK + '\n\n' + theme + '\n\n' + inst;
+}
+
+function buildIntro(p, cp){
+  let t = '【' + p.name + '】\n';
+  if(p.copy) t += p.copy + '\n\n';
+  if(p.features) t += p.features + '\n\n';
+  const price = findPrice(p.name);
+  if(price) t += '価格：' + price + '\n';
+  if(cp) t += '\n🎯 ' + cp.name + ' 開催中\n' + cpSummary(cp) + '\n期間：' + fmtMD(cpAnnounceStartStr(cp)) + '〜' + fmtMD(cp.date_end) + '\n';
+  t += '\n直営店舗・オンラインショップでお求めいただけます。\nフリーコール 0120-56-1115（平日10:00〜14:00・15:00〜18:30）';
+  return t;
+}
+function cpAnnounceStartStr(cp){ return cp.announce_date || cp.date_start || ''; }
+
+function buildTags(p){
+  const extra = String(p.tags||'').split(/[,、\s]+/).map(s=>s.trim()).filter(Boolean)
+    .map(s => s.startsWith('#') ? s : '#'+s);
+  return BASE_TAGS.concat(extra).slice(0,5).join(' ');
+}
+
+function buildInsta(p, cp){
+  let t = '';
+  if(p.copy) t += p.copy + '✨\n\n';
+  if(p.features) t += p.features + '\n\n';
+  if(cp){
+    t += '＼ ' + cp.name + ' 開催中 ／\n' + cpSummary(cp) + '\n' + fmtMD(cp.date_end) + 'まで🎯\n\n';
+  }
+  const price = findPrice(p.name);
+  t += '▪ ' + p.name + (price ? '　' + price : '') + '\n\n';
+  t += '直営店舗・オンラインショップでお求めいただけます\n詳しくはプロフィールのリンクから💄\n\n';
+  t += buildTags(p);
+  return t;
+}
+
+function buildYT(p, cp){
+  let t = '【タイトル案】\n' + (p.copy ? p.copy + '｜' : '') + p.name + '【エポラーシェ】\n\n';
+  t += '【概要欄】\n';
+  if(p.features) t += p.features + '\n\n';
+  if(cp) t += '🎯 ' + cp.name + ' 開催中（' + fmtMD(cp.date_end) + 'まで）\n' + cpSummary(cp) + '\n\n';
+  t += '無添加化粧品エポラーシェ／美容研究家 岡江美希\nフリーコール 0120-56-1115（平日10:00〜14:00・15:00〜18:30）\n\n';
+  t += buildTags(p);
+  return t;
+}
+
+// ============================================================
+//  モーダル
+// ============================================================
+function openSheet(y,m,day){
+  const d = new Date(y,m,day);
+  const a = assignDay(d);
+  const p = a.product;
+  const cp = a.kind==='cp' ? a.campaign : findCampaignFor(p, d);
+
+  document.getElementById('sh-date').textContent = y + '年' + (m+1) + '月' + day + '日（' + WD[d.getDay()] + '）'
+    + (a.kind==='cp' ? '　🎯 キャンペーン商品' : a.kind==='rec' ? '　⭐ 今月のおすすめ' : '');
+  document.getElementById('sh-name').textContent = p.name;
+  document.getElementById('sh-copy').textContent = p.copy || '';
+
+  let body = '';
+  if(p._missing){
+    body += '<div class="miss-band">⚠ この商品は「SNS商品」シートに未登録のため、キャッチコピー・特徴が空欄です。シートに行を追加すると自動で反映されます。</div>';
+  }
+  if(cp){
+    body += '<div class="cp-band">🎯 <b>' + esc(cp.name) + '</b>　' + esc(cpSummary(cp)) + '<br>期間：' + esc(fmtMD(cpAnnounceStartStr(cp))) + '〜' + esc(fmtMD(cp.date_end)) + '　※キャプション・プロンプトに自動反映済み</div>';
+  }
+  const outs = [
+    ['🎨 漫画プロンプト（チャッピーイメージ2用）', buildComic(p, cp), 14],
+    ['📝 商品紹介文', buildIntro(p, cp), 8],
+    ['📷 Instagramキャプション', buildInsta(p, cp), 8],
+    ['▶️ YouTube Shortsキャプション', buildYT(p, cp), 8],
+  ];
+  outs.forEach((o,i)=>{
+    body += '<div class="out-sec"><div class="out-hd"><span class="out-title">'+o[0]+'</span>'
+          + '<button class="copy-btn" onclick="copyOut(this,'+i+')">コピー</button></div>'
+          + '<div class="out-body"><textarea id="out-'+i+'" rows="'+o[2]+'" readonly>'+esc(o[1])+'</textarea></div></div>';
+  });
+  document.getElementById('sh-body').innerHTML = body;
+  document.getElementById('ov').classList.add('on');
+}
+
+function closeSheet(){ document.getElementById('ov').classList.remove('on'); }
+
+async function copyOut(btn, i){
+  const ta = document.getElementById('out-'+i);
+  try{
+    await navigator.clipboard.writeText(ta.value);
+  }catch(e){
+    ta.select(); document.execCommand('copy');
+  }
+  btn.textContent = '✅ コピー済み'; btn.classList.add('done');
+  setTimeout(()=>{ btn.textContent='コピー'; btn.classList.remove('done'); }, 1800);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', ()=>{
+  viewY = todayD.getFullYear(); viewM = todayD.getMonth();
+  loadData();
+});
+</script>
+</body>
+</html>
