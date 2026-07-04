@@ -94,6 +94,12 @@ body{font-family:'M PLUS 1p',sans-serif;background:var(--bg);color:var(--tx);fon
 .copy-btn.done{background:var(--ok);}
 .out-body textarea{width:100%;border:none;padding:10px 12px;font-family:inherit;font-size:11px;line-height:1.75;color:var(--tx2);resize:vertical;outline:none;background:#fff;display:block;}
 
+/* 参考画像（漫画プロンプト用） */
+.ref-imgs{display:flex;gap:10px;flex-wrap:wrap;padding:10px 12px;background:var(--sf);border-top:1px solid var(--bd);}
+.ref-hint{width:100%;font-size:9.5px;color:var(--tx3);font-weight:700;}
+.ref-img{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:9px;color:var(--tx3);font-weight:700;text-align:center;max-width:110px;}
+.ref-img img{width:104px;height:104px;object-fit:contain;background:#fff;border:1px solid var(--bd);border-radius:6px;}
+
 .foot-note{font-size:10px;color:var(--tx3);text-align:center;margin-top:14px;line-height:1.8;}
 
 @media(max-width:520px){
@@ -503,6 +509,71 @@ function buildBlog(p, cp, d){
   return L.join('\n');
 }
 
+// 商品ファミリーの画像をまとめて収集（本品・色違い・レフィル・ケース・パフ等）
+// 商品シートの商品名が「その日の商品名」で始まる行の画像をすべて拾う
+const REF_ALIAS = {
+  'トランスルーセントパウダー': ['TLP'],
+  'マイクロフィニッシングパウダーセット': ['マイクロフィニッシングパウダー', 'MFP'],
+};
+function collectImgs(name){
+  const keys = [name];
+  const stripped = name.replace(/セット$/, '');
+  if(stripped !== name) keys.push(stripped);
+  (REF_ALIAS[name] || []).forEach(function(k){ keys.push(k); });
+  const seen = {};
+  const out = [];
+  (DATA.products || []).forEach(function(pr){
+    if(!pr.img) return;
+    const hit = keys.some(function(k){ return pr.name.indexOf(k) === 0; });
+    if(!hit) return;
+    if(seen[pr.img]) return;
+    seen[pr.img] = 1;
+    out.push({ label: pr.name + (pr.spec ? '（' + pr.spec + '）' : ''), img: pr.img });
+  });
+  return out.slice(0, 6);
+}
+
+// 参考画像ブロック（漫画プロンプトの下に表示）
+function buildRefImgs(p){
+  const imgs = collectImgs(p.name);
+  let h = '<div class="ref-imgs">';
+  h += '<div class="ref-hint">🖼 チャッピーに添付する参考画像（画像を右クリック／スマホは長押しでコピー・保存）</div>';
+  h += '<div class="ref-img"><img src="okae.png" onerror="this.parentNode.style.display=\'none\'"><span>岡江美希（キャラ参考）</span></div>';
+  h += '<div class="ref-img"><img src="logo.png" onerror="this.parentNode.style.display=\'none\'"><span>エポラーシェ ロゴ</span></div>';
+  if(imgs.length){
+    imgs.forEach(function(it){
+      h += '<div class="ref-img"><img src="' + esc(it.img) + '" loading="lazy" onerror="this.parentNode.style.display=\'none\'"><span>' + esc(it.label) + '</span></div>';
+    });
+  }else{
+    h += '<div class="ref-img"><span style="font-weight:400;">商品画像：商品シートN列に画像URLを入れると、ここに自動表示されます（GAS v12以降）</span></div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+// お客様の声 紹介用テンプレ
+function buildVoice(p, cp){
+  const feat = String(p.features||'').split('／').filter(Boolean)[0] || '';
+  const L = [];
+  L.push('＼お客様の声のご紹介／');
+  L.push('');
+  L.push('「（ここに実際のお客様の声を入れてください）」');
+  L.push('（60代・K様）←年代・イニシャルは実際のものに変更');
+  L.push('');
+  L.push('スタッフより：');
+  L.push('温かいお声をいただき、スタッフ一同とても励みになっています。');
+  L.push('これからも心を込めてお届けしてまいります。');
+  L.push('');
+  L.push('▪ ' + p.name + (findPrice(p.name) ? '　' + findPrice(p.name) : ''));
+  L.push('');
+  L.push('──────────────');
+  L.push('【書きぶりの見本】※架空の例文です。そのまま使わず、必ず実際のレビューに差し替えてください');
+  L.push('「' + p.name + 'を使い始めてから、毎日のお手入れの時間が楽しみになりました。' + (feat ? feat + 'ところも気に入っています。' : '') + '」');
+  L.push('');
+  L.push('【薬機法メモ】使用感・気持ちの表現はOK／「改善した」「効いた」「治った」「シワが消えた」等の効果断定はお客様の声でもNG。該当箇所は掲載前に佐久間さんへ確認');
+  return L.join('\n');
+}
+
 // ============================================================
 //  モーダル
 // ============================================================
@@ -530,11 +601,14 @@ function openSheet(y,m,day){
     ['📷 Instagramキャプション', buildInsta(p, cp), 8],
     ['▶️ YouTube Shortsキャプション', buildYT(p, cp), 8],
     ['📰 ブログ記事下書き（eporashe開発日記用）', buildBlog(p, cp, d), 16],
+    ['💌 お客様の声 紹介用テンプレ', buildVoice(p, cp), 10],
   ];
   outs.forEach((o,i)=>{
     body += '<div class="out-sec"><div class="out-hd"><span class="out-title">'+o[0]+'</span>'
           + '<button class="copy-btn" onclick="copyOut(this,'+i+')">コピー</button></div>'
-          + '<div class="out-body"><textarea id="out-'+i+'" rows="'+o[2]+'" readonly>'+esc(o[1])+'</textarea></div></div>';
+          + '<div class="out-body"><textarea id="out-'+i+'" rows="'+o[2]+'" readonly>'+esc(o[1])+'</textarea></div>'
+          + (i===0 ? buildRefImgs(p) : '')
+          + '</div>';
   });
   document.getElementById('sh-body').innerHTML = body;
   document.getElementById('ov').classList.add('on');
