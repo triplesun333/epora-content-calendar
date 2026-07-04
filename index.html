@@ -397,6 +397,112 @@ function buildYT(p, cp){
   return t;
 }
 
+// ── 月ごとの季節の書き出し（ブログ用） ──
+const SEASONS = {
+  1:{word:'新春', lines:['新しい年が始まりましたね','寒さも乾燥も本番の季節','あたたかくして','お過ごしくださいね']},
+  2:{word:'立春', lines:['まだまだ寒い日が続きますね','空気の乾燥も','ピークを迎える頃です']},
+  3:{word:'春めき', lines:['少しずつ春めいてきましたね','季節の変わり目は','肌がゆらぎやすい時期です']},
+  4:{word:'春本番', lines:['新生活の季節になりましたね','日差しが少しずつ','強くなってくる頃です']},
+  5:{word:'初夏', lines:['初夏の陽気が心地よい季節','紫外線対策はそろそろ','本番を迎えますね']},
+  6:{word:'梅雨', lines:['梅雨の季節になりましたね','湿気によるベタつきが','気になる時期です']},
+  7:{word:'盛夏', lines:['本格的な夏がやってきました','強い日差しと冷房の乾燥','どちらも気になる季節ですね']},
+  8:{word:'真夏', lines:['毎日暑い日が続きますね','汗や皮脂、夏のお疲れが','肌に出やすい頃です']},
+  9:{word:'初秋', lines:['朝晩が涼しくなってきましたね','夏の疲れが出やすい頃','秋支度を始めたい季節です']},
+  10:{word:'秋', lines:['秋が深まってきましたね','空気の乾燥が','気になり始める頃です']},
+  11:{word:'晩秋', lines:['ぐっと空気が乾いてきましたね','本格的な保湿シーズンの','始まりです']},
+  12:{word:'師走', lines:['今年も残りわずかですね','忙しさと寒さで','肌も心もお疲れ気味の頃です']},
+};
+
+function wrapJP(s, n){
+  s = String(s||'').trim();
+  const out = [];
+  while(s.length > n){ out.push(s.slice(0, n)); s = s.slice(n); }
+  if(s) out.push(s);
+  return out;
+}
+
+// ブログ記事（eporashe開発日記書式：1行30文字以内・4行塊・2行空け）
+function buildBlog(p, cp, d){
+  const m = d.getMonth() + 1;
+  const sea = SEASONS[m];
+  const isYama = dayNum(d) % 2 === 0;
+  const writer = isYama ? 'yama' : 'MITSUKO';
+  const emo = isYama ? '🌸' : '🌿';
+  const price = findPrice(p.name);
+  const L = [];
+  L.push('※下書きです。タイトルは15文字以内に整えてから投稿してください');
+  L.push('');
+  L.push('【タイトル案】');
+  L.push('・【嬉しい】' + m + '月のお気に入り');
+  L.push('・【発見】' + sea.word + 'の相棒コスメ');
+  L.push('');
+  L.push('---');
+  L.push('');
+  L.push('## ' + emo + '（タイトルをここに）');
+  L.push('');
+  L.push('こんにちは');
+  L.push(writer + 'です');
+  L.push('');
+  L.push('');
+  sea.lines.forEach(function(x){ L.push(x); });
+  L.push('');
+  L.push('');
+  L.push('### ✨ 今日ご紹介したいもの');
+  L.push('');
+  L.push('今日お話ししたいのは');
+  wrapJP('「' + p.name + '」です', 22).forEach(function(x){ L.push(x); });
+  if(p.copy){
+    L.push('');
+    L.push('');
+    wrapJP(p.copy, 20).forEach(function(x){ L.push(x); });
+  }
+  L.push('');
+  L.push('');
+  L.push('### 💕 お気に入りポイント');
+  String(p.features||'').split('／').filter(Boolean).forEach(function(f){
+    L.push('');
+    L.push('');
+    wrapJP(f, 20).forEach(function(x){ L.push(x); });
+  });
+  L.push('');
+  L.push('');
+  if(isYama){
+    L.push('実際に試してみると');
+    L.push('使い心地がとても');
+    L.push('気に入っています😊');
+  }else{
+    L.push('敏感肌の私でも');
+    L.push('心地よくお手入れ');
+    L.push('できています😊');
+  }
+  if(price){
+    L.push('');
+    L.push('');
+    wrapJP(p.name + 'は', 24).forEach(function(x){ L.push(x); });
+    L.push(price + 'です');
+  }
+  if(cp){
+    L.push('');
+    L.push('');
+    L.push('### 🎁 お得なお知らせ');
+    L.push('');
+    wrapJP('ただいま「' + cp.name + '」開催中', 24).forEach(function(x){ L.push(x); });
+    wrapJP(cpSummary(cp), 24).forEach(function(x){ L.push(x); });
+    L.push(fmtMD(cp.date_end) + 'までです');
+  }
+  L.push('');
+  L.push('');
+  L.push('### 💖 おわりに');
+  L.push('');
+  L.push('最後まで読んでいただき');
+  L.push('ありがとうございました' + (isYama ? '💕' : '🌿'));
+  L.push('');
+  L.push('');
+  L.push('皆さまの毎日のお手入れが');
+  L.push('楽しい時間になりますように');
+  return L.join('\n');
+}
+
 // ============================================================
 //  モーダル
 // ============================================================
@@ -423,6 +529,7 @@ function openSheet(y,m,day){
     ['📝 商品紹介文', buildIntro(p, cp), 8],
     ['📷 Instagramキャプション', buildInsta(p, cp), 8],
     ['▶️ YouTube Shortsキャプション', buildYT(p, cp), 8],
+    ['📰 ブログ記事下書き（eporashe開発日記用）', buildBlog(p, cp, d), 16],
   ];
   outs.forEach((o,i)=>{
     body += '<div class="out-sec"><div class="out-hd"><span class="out-title">'+o[0]+'</span>'
