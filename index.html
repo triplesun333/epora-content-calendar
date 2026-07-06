@@ -132,7 +132,7 @@ body{font-family:'M PLUS 1p',sans-serif;background:var(--bg);color:var(--tx);fon
   </div>
   <div id="cal-wrap"></div>
   <div class="foot-note">
-    日付をタップすると、その日の漫画プロンプト・商品紹介文・キャプションが表示されます。<br>
+    日付をタップすると、その日の漫画プロンプト・商品紹介文・キャプション・実写ストーリーズが表示されます。<br>
     商品の内容は受注アプリのスプレッドシート「SNS商品」シート、おすすめは「カレンダー設定」シートで編集できます。
   </div>
 </div>
@@ -662,6 +662,107 @@ function buildVoice(p, cp){
   return L.join('\n');
 }
 
+// ── 実写ストーリーズ（Instagramストーリーズ→リール用・5〜7枚） ──
+// フック→共感→発見→証拠→背中押しの構成。各スライドに焼き込みテキストと実写プロンプト。
+// 薬機法OK（整える・ケア・なめらか等のみ）。カテゴリ別に切り口を自動出し分け。
+const ST_HOOK = {
+  skin: [['高い化粧品なのに、','なんで夕方また乾くの?'], 'その乾き、40代からぐっと増えます。'],
+  make: [['塗った直後はきれい。','なのに、昼にはくずれてる。'], 'その"崩れ"、下地とお粉で変わります。'],
+  hair: [['朝はまとまるのに、','夕方には広がってしまう。'], 'その手ざわり、洗い方から変えられます。'],
+  inner:[['外側のケアは、','もう充分やっている。'], '足りないのは、内側からのケアかも。'],
+  other:[['毎日のことだから、','妥協したくない。'], 'その小さな習慣、心地よさで選びませんか。'],
+};
+const ST_BG = {
+  skin:'deep navy and gold luxury cosmetic aesthetic, soft warm morning light',
+  make:'elegant navy and gold beauty editorial, soft studio light, refined',
+  hair:'warm navy and gold premium haircare mood, soft directional light',
+  inner:'calm navy and gold wellness aesthetic, natural warm light, birch and tea props',
+  other:'refined navy and gold lifestyle aesthetic, soft clean light',
+};
+const ST_CTA = '📍 直営店舗／オンラインで\n☎ フリーコール 0120-56-1115\n（平日10:00〜14:00・15:00〜18:30）\n▶ プロフィールのリンクから';
+
+function stVoices(p){
+  const raw = String(p.voice||'');
+  if(!raw) return ['',''];
+  const arr = raw.split('｜').map(s=>s.replace(/（お客様アンケートより）/g,'').trim()).filter(Boolean);
+  return [arr[0]||'', (arr[1] && arr[1]!==arr[0]) ? arr[1] : ''];
+}
+
+function buildStories(p, cp){
+  const t = detectCat(p);
+  const hook = ST_HOOK[t] || ST_HOOK.skin;
+  const bg = ST_BG[t] || ST_BG.skin;
+  const price = findPrice(p.name);
+  const isSkin = (t==='skin');
+  const vs = stVoices(p);
+  const v1 = vs[0], v2 = vs[1];
+  const feat = String(p.features||'').split('／').filter(Boolean)[0] || '';
+
+  const L = [];
+  L.push('【実写ストーリーズ構成】9:16縦・各スライドに文字を焼き込み・モデルは顔控えめ');
+  L.push('各スライドの「文字」をnanobananaProの文字入れに、「実写」を画像生成に貼ってください。');
+  if(cp) L.push('開催中：' + cp.name + '（' + cpSummary(cp) + '／' + fmtMD(cp.date_end) + 'まで）');
+  L.push('══════════════════════');
+
+  // 1 フック
+  L.push('▼ 1枚目｜フック（指を止める）');
+  L.push('［文字］');
+  L.push('（上・大きく）「' + hook[0][0]);
+  L.push('　　　　　　　' + hook[0][1] + '」');
+  L.push('（中央）' + hook[1]);
+  L.push('（下・小さく）▶ 実は"選び方"かもしれません。次へ');
+  L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. A woman in her late 40s-50s in daily life, shown from behind or three-quarter with face softly out of focus, an honest slightly-troubled expression relating to the concern. Cinematic, high-end. Upper and lower areas darker/clean for Japanese text. Clean Japanese text rendering.');
+  L.push('──────────────');
+
+  // 2 共感
+  L.push('▼ 2枚目｜共感（自分ごとに）');
+  L.push('［文字］');
+  L.push('（上）朝は気に入っていたのに、');
+  L.push('　　　時間が経つと物足りない。');
+  L.push('（中央）"ちゃんとケアしているのに"');
+  L.push('　　　　と感じること、ありませんか?');
+  L.push('（下）▶ そこを見直した1本があります。次へ');
+  L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. Intimate close-up of a woman\'s hands (40s-50s) in soft natural light, a quiet contemplative moment. Warm, authentic, shallow depth of field. Generous clean space top and bottom for Japanese text.');
+  L.push('──────────────');
+
+  // 3 発見（商品）
+  L.push('▼ 3枚目｜発見（商品の魅力を具体で）');
+  L.push('［文字］');
+  L.push('（上）エポラーシェ');
+  L.push('　　　' + p.name);
+  L.push('（中央）' + (isSkin ? '軽いのに、しっとり続く。\n　　　　少量でなめらかに広がる。' : '毎日に取り入れやすい。\n　　　　続けやすさが、いちばんの魅力。'));
+  if(price) L.push('　　　　' + price);
+  if(feat) L.push('　　　　' + feat);
+  L.push('（下）▶ 使った方の声を紹介します。次へ');
+  L.push('［実写］Photorealistic vertical 9:16 hero shot of the ' + p.name + ' product, ' + bg + '. Product razor-sharp and centered on an elegant surface, subtle texture swipe or minimal natural props. Luxury cosmetic advertising photography. Upper space clean for product name. IMPORTANT: keep the real product package unchanged.');
+  L.push('──────────────');
+
+  // 4 証拠（声）
+  L.push('▼ 4枚目｜証拠（お客様の声）');
+  L.push('［文字］');
+  L.push('（上・小見出し）お客様アンケートより');
+  L.push('（中央）' + (v1 ? '「' + v1 + '」' : '「使い心地が気に入っています」'));
+  if(v2) L.push('　　　　「' + v2 + '」');
+  L.push('（下）▶ 気になった方へ。次へ');
+  L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. A woman in her 50s (three-quarter view, face gently cropped or softly out of focus, calm confident expression) using or holding the product naturally in bright soft light. Trustworthy, real, premium campaign look. Darker clean panels top and bottom for testimonial text.');
+  L.push('※声は実際のアンケート／掲載前に佐久間さんの確認を');
+  L.push('──────────────');
+
+  // 5 背中押し
+  L.push('▼ 5枚目｜背中押し（CTA・買い方）');
+  L.push('［文字］');
+  L.push('（上）気になっていた方こそ、一度。');
+  L.push('（中央）' + p.name);
+  if(price) L.push('　　　　' + price);
+  L.push('　　　　無添加・シンプルケア。');
+  L.push('　　　　美容研究家 岡江美希 監修。');
+  L.push('（下・導線）');
+  L.push(ST_CTA);
+  L.push('［実写］Photorealistic vertical 9:16 elegant still life of the ' + p.name + ' on soft linen or refined surface, ' + bg + '. Minimal, generous empty space for branding and CTA text. Calm luxury mood. Lower third clean for contact info. Keep the real product package unchanged.');
+
+  return L.join('\n');
+}
+
 // ============================================================
 //  モーダル
 // ============================================================
@@ -690,6 +791,7 @@ function openSheet(y,m,day){
     ['▶️ YouTube Shortsキャプション', buildYT(p, cp), 8],
     ['📰 ブログ記事下書き（eporashe開発日記用）', buildBlog(p, cp, d), 16],
     ['💌 お客様の声 紹介用テンプレ', buildVoice(p, cp), 10],
+    ['📸 実写ストーリーズ（画像＋文字・5枚）', buildStories(p, cp), 20],
   ];
   outs.forEach((o,i)=>{
     body += '<div class="out-sec"><div class="out-hd"><span class="out-title">'+o[0]+'</span>'
