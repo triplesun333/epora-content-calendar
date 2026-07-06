@@ -104,10 +104,44 @@ body{font-family:'M PLUS 1p',sans-serif;background:var(--bg);color:var(--tx);fon
 
 @media(max-width:520px){
   .cell{min-height:64px;}
-  .dprod{font-size:8.5px;-webkit-line-clamp:3;}
+  .dprod{font-size:8.5px;-webkit-line-clamp:2;}
   .mnav-label{font-size:16px;min-width:120px;}
   .sheet-name{font-size:15px;}
 }
+
+/* ── 進捗表示（カレンダーセル） ── */
+.dprog{margin-top:auto;align-self:flex-start;font-size:8.5px;font-weight:800;
+  color:#a6791f;background:#fbf2d8;border:1px solid #e6d19a;border-radius:6px;
+  padding:0 5px;line-height:1.5;font-family:'M PLUS 1p',sans-serif;}
+.dprog.full{color:#fff;background:#3a8f5f;border-color:#3a8f5f;}
+.cell.all-done{background:#f0f9f3;}
+.cell.all-done:hover{background:#e6f4ec;}
+
+/* ── モーダル内：進捗サマリー ── */
+.prog-summary{background:var(--nvl);border:1px solid var(--bd2);border-radius:10px;
+  padding:9px 12px;margin-bottom:12px;}
+.prog-txt{font-size:12px;color:var(--nv);}
+.prog-txt b{font-size:14px;}
+.prog-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.pchip{font-size:10px;padding:2px 8px;border-radius:10px;background:#fff;
+  border:1px solid var(--bd);color:#999;font-weight:700;}
+.pchip.on{background:#3a8f5f;border-color:#3a8f5f;color:#fff;}
+
+/* ── モーダル内：作成済みチェック ── */
+.done-chk{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10.5px;
+  font-weight:800;color:#3a8f5f;white-space:nowrap;user-select:none;}
+.done-chk input{width:16px;height:16px;accent-color:#3a8f5f;cursor:pointer;margin:0;}
+.out-title.title-done{color:#3a8f5f;}
+.out-sec.sec-done{border-color:#8fce9f;}
+.out-sec.sec-done .out-hd{background:#f0f9f3;}
+.out-sec.sub-sec{margin-top:-4px;}
+.out-sec.sub-sec .out-hd{background:#f3eee1;}
+
+/* ── 実写：枚数切替 ── */
+.story-nsel{display:flex;gap:3px;}
+.nbtn{padding:3px 8px;border:1px solid var(--bd2);background:#fff;border-radius:8px;
+  font-size:10px;font-weight:800;color:var(--nv);cursor:pointer;font-family:inherit;}
+.nbtn.on{background:var(--nv);color:#fff;border-color:var(--nv);}
 </style>
 </head>
 <body>
@@ -319,9 +353,17 @@ function renderCal(){
     if(a.kind==='cp') badge = '<span class="dbadge b-cp">🎯 CP</span>';
     else if(a.kind==='rec') badge = '<span class="dbadge b-rec">⭐ おすすめ</span>';
     const miss = a.product._missing ? '<span class="dmiss">⚠ 情報未登録</span>' : '';
+    const dn = doneCount(viewY, viewM, day);
+    const tot = OUT_KINDS.length;
+    let prog = '';
+    if(dn>0){
+      const full = (dn>=tot);
+      prog = '<span class="dprog '+(full?'full':'')+'">'+(full?'✓ 完了':dn+'/'+tot)+'</span>';
+      if(full) cls.push('all-done');
+    }
     html += '<div class="'+cls.join(' ')+'" onclick="openSheet('+viewY+','+viewM+','+day+')">'
           + '<span class="dnum">'+day+'</span>' + badge
-          + '<span class="dprod">'+esc(a.product.name)+'</span>' + miss + '</div>';
+          + '<span class="dprod">'+esc(a.product.name)+'</span>' + miss + prog + '</div>';
   }
   const tail = (lead + lastDate) % 7;
   if(tail !== 0) for(let i=tail;i<7;i++) html += '<div class="cell other"></div>';
@@ -662,6 +704,59 @@ function buildVoice(p, cp){
   return L.join('\n');
 }
 
+// ============================================================
+//  制作進捗の記録（まずは端末保存。あとで別スプレッドシート共有に切替可）
+//  保存先を1か所に集約：saveProgress / loadProgress のみ差し替えれば共有化できる
+// ============================================================
+const OUT_KINDS = [
+  {key:'comic', label:'漫画'},
+  {key:'intro', label:'紹介文'},
+  {key:'insta', label:'Insta'},
+  {key:'yt',    label:'Shorts'},
+  {key:'blog',  label:'ブログ'},
+  {key:'voice', label:'お客様の声'},
+  {key:'stories', label:'実写'},
+];
+let PROGRESS = {};   // { "2026-07-06": {comic:1, blog:1, ...}, ... }
+
+function loadProgress(){
+  try{ PROGRESS = JSON.parse(localStorage.getItem('epora_cal_progress')||'{}'); }
+  catch(e){ PROGRESS = {}; }
+}
+function saveProgress(){
+  try{ localStorage.setItem('epora_cal_progress', JSON.stringify(PROGRESS)); }catch(e){}
+}
+function dateKey(y,m,day){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
+function getDone(y,m,day){ return PROGRESS[dateKey(y,m,day)] || {}; }
+function toggleDone(y,m,day,kind,on){
+  const k = dateKey(y,m,day);
+  if(!PROGRESS[k]) PROGRESS[k] = {};
+  if(on) PROGRESS[k][kind] = 1; else delete PROGRESS[k][kind];
+  if(Object.keys(PROGRESS[k]).length===0) delete PROGRESS[k];
+  saveProgress();
+  renderCal();
+}
+function doneCount(y,m,day){ return Object.keys(getDone(y,m,day)).length; }
+
+// ── ブログ差し込み用の画像プロンプト（本文の途中に入れる写真） ──
+function buildBlogImg(p, cp){
+  const t = detectCat(p);
+  const bg = ST_BG[t] || ST_BG.skin;
+  const L = [];
+  L.push('【ブログ差し込み用 画像プロンプト】nanobananaPro／横長16:9推奨');
+  L.push('※冒頭の添付画像は上からコピペするので、これは本文の途中に入れる写真用です');
+  L.push('──────────────');
+  L.push('① 商品の主役カット（記事の中ほどに）');
+  L.push('Photorealistic 16:9. ' + bg + '. Clean hero shot of the ' + p.name + ' product on a refined surface with soft natural light and minimal props. Warm, inviting, editorial skincare blog photography. Keep the real product package unchanged.');
+  L.push('');
+  L.push('② 暮らしの中の使用シーン（お気に入りポイントの近くに）');
+  L.push('Photorealistic 16:9. ' + bg + '. A warm lifestyle scene suggesting daily use of ' + p.name + ' — soft hands or a dressing table vignette, face out of frame or softly blurred. Cozy, authentic, aspirational. Space kept calm for a natural feel.');
+  L.push('');
+  L.push('③ 締めの余韻カット（記事の最後に）');
+  L.push('Photorealistic 16:9. ' + bg + '. A serene closing still life with the ' + p.name + ', gentle morning light, a hint of greenery or linen texture, calm and elegant. Keep the real product package unchanged.');
+  return L.join('\n');
+}
+
 // ── 実写ストーリーズ（Instagramストーリーズ→リール用・5〜7枚） ──
 // フック→共感→発見→証拠→背中押しの構成。各スライドに焼き込みテキストと実写プロンプト。
 // 薬機法OK（整える・ケア・なめらか等のみ）。カテゴリ別に切り口を自動出し分け。
@@ -688,7 +783,8 @@ function stVoices(p){
   return [arr[0]||'', (arr[1] && arr[1]!==arr[0]) ? arr[1] : ''];
 }
 
-function buildStories(p, cp){
+function buildStories(p, cp, n){
+  n = n || 5;
   const t = detectCat(p);
   const hook = ST_HOOK[t] || ST_HOOK.skin;
   const bg = ST_BG[t] || ST_BG.skin;
@@ -699,7 +795,7 @@ function buildStories(p, cp){
   const feat = String(p.features||'').split('／').filter(Boolean)[0] || '';
 
   const L = [];
-  L.push('【実写ストーリーズ構成】9:16縦・各スライドに文字を焼き込み・モデルは顔控えめ');
+  L.push('【実写ストーリーズ構成 '+n+'枚】9:16縦・各スライドに文字を焼き込み・モデルは顔控えめ');
   L.push('各スライドの「文字」をnanobananaProの文字入れに、「実写」を画像生成に貼ってください。');
   if(cp) L.push('開催中：' + cp.name + '（' + cpSummary(cp) + '／' + fmtMD(cp.date_end) + 'まで）');
   L.push('══════════════════════');
@@ -748,8 +844,52 @@ function buildStories(p, cp){
   L.push('※声は実際のアンケート／掲載前に佐久間さんの確認を');
   L.push('──────────────');
 
-  // 5 背中押し
-  L.push('▼ 5枚目｜背中押し（CTA・買い方）');
+  // ここまでで4枚。残りは「中間スライド（任意）＋最終CTA」で合計n枚にする。
+  // n=5 → CTAが5枚目。n=6 → 中間1枚＋CTA。n=7 → 中間2枚＋CTA。
+  let no = 5;
+
+  // 中間①（n>=6）：使い方 or 続けるメリット
+  if(n >= 6){
+    if(isSkin){
+      L.push('▼ '+no+'枚目｜使い方（岡江美希流）');
+      L.push('［文字］');
+      L.push('（上・小見出し）岡江美希流の使い方');
+      L.push('（中央）化粧水・美容液で整えたあと、');
+      L.push('　　　　少量を手にとって、');
+      L.push('　　　　顔全体にやさしくなじませる。');
+      L.push('　　　　朝メイク前にも。');
+      L.push('（下）▶ 続けやすさの理由は次へ');
+      L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. Close-up of fingertips gently applying the product to the cheek, dewy skin catching soft light, serene mood, face softly cropped. Premium skincare campaign. Clean space for step text.');
+    } else {
+      L.push('▼ '+no+'枚目｜続けるメリット');
+      L.push('［文字］');
+      L.push('（上・小見出し）続けるほど、うれしい');
+      L.push('（中央）定期便なら最大20%OFF、');
+      L.push('　　　　送料・代引手数料は弊社負担。');
+      L.push('　　　　ポイントも貯まる・使える。');
+      L.push('（下）▶ くわしくは次へ');
+      L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. The product with subtle gold accents conveying ongoing care, elegant still life. Clean space for benefit text. Keep the real product package unchanged.');
+    }
+    L.push('──────────────');
+    no++;
+  }
+
+  // 7枚目（任意）：信頼・安心
+  if(n >= 7){
+    L.push('▼ '+no+'枚目｜信頼・安心');
+    L.push('［文字］');
+    L.push('（上・小見出し）選ばれ続ける理由');
+    L.push('（中央）無添加・水溶性のシンプル設計。');
+    L.push('　　　　国内製造・美容研究家監修。');
+    L.push('　　　　20年以上、肌と向き合ってきました。');
+    L.push('（下）▶ 最後にご案内です。次へ');
+    L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. Refined brand still life conveying trust and craftsmanship — the product with soft gold light, minimal premium styling. Clean space for text. Keep the real product package unchanged.');
+    L.push('──────────────');
+    no++;
+  }
+
+  // 最終：背中押し
+  L.push('▼ '+no+'枚目｜背中押し（CTA・買い方）');
   L.push('［文字］');
   L.push('（上）気になっていた方こそ、一度。');
   L.push('（中央）' + p.name);
@@ -766,16 +906,27 @@ function buildStories(p, cp){
 // ============================================================
 //  モーダル
 // ============================================================
+let SHEET_CTX = null;   // 現在開いている日付とデータ
+let STORY_N = 5;        // 実写ストーリーズの枚数
+
 function openSheet(y,m,day){
   const d = new Date(y,m,day);
   const a = assignDay(d);
   const p = a.product;
   const cp = a.kind==='cp' ? a.campaign : findCampaignFor(p, d);
+  SHEET_CTX = {y,m,day,d,p,cp};
 
   document.getElementById('sh-date').textContent = y + '年' + (m+1) + '月' + day + '日（' + WD[d.getDay()] + '）'
     + (a.kind==='cp' ? '　🎯 キャンペーン商品' : a.kind==='rec' ? '　⭐ 今月のおすすめ' : '');
   document.getElementById('sh-name').textContent = p.name;
   document.getElementById('sh-copy').textContent = p.copy || '';
+  renderSheetBody();
+  document.getElementById('ov').classList.add('on');
+}
+
+function renderSheetBody(){
+  const {y,m,day,d,p,cp} = SHEET_CTX;
+  const done = getDone(y,m,day);
 
   let body = '';
   if(p._missing){
@@ -784,24 +935,61 @@ function openSheet(y,m,day){
   if(cp){
     body += '<div class="cp-band">🎯 <b>' + esc(cp.name) + '</b>　' + esc(cpSummary(cp)) + '<br>期間：' + esc(fmtMD(cpAnnounceStartStr(cp))) + '〜' + esc(fmtMD(cp.date_end)) + '　※キャプション・プロンプトに自動反映済み</div>';
   }
+
+  // 進捗サマリー
+  const total = OUT_KINDS.length;
+  const doneN = OUT_KINDS.filter(k=>done[k.key]).length;
+  body += '<div class="prog-summary"><span class="prog-txt">この日の制作：<b>'+doneN+' / '+total+'</b> 完了</span>'
+        + '<div class="prog-chips">' + OUT_KINDS.map(k=>'<span class="pchip '+(done[k.key]?'on':'')+'">'+(done[k.key]?'✓ ':'')+k.label+'</span>').join('') + '</div></div>';
+
+  // 出力（kindキー付き）
   const outs = [
-    ['🎨 漫画プロンプト（チャッピーイメージ2用）', buildComic(p, cp), 14],
-    ['📝 商品紹介文', buildIntro(p, cp), 8],
-    ['📷 Instagramキャプション', buildInsta(p, cp), 8],
-    ['▶️ YouTube Shortsキャプション', buildYT(p, cp), 8],
-    ['📰 ブログ記事下書き（eporashe開発日記用）', buildBlog(p, cp, d), 16],
-    ['💌 お客様の声 紹介用テンプレ', buildVoice(p, cp), 10],
-    ['📸 実写ストーリーズ（画像＋文字・5枚）', buildStories(p, cp), 20],
+    {kind:'comic', title:'🎨 漫画プロンプト（チャッピーイメージ2用）', text:buildComic(p, cp), rows:14, ref:true},
+    {kind:'intro', title:'📝 商品紹介文', text:buildIntro(p, cp), rows:8},
+    {kind:'insta', title:'📷 Instagramキャプション', text:buildInsta(p, cp), rows:8},
+    {kind:'yt',    title:'▶️ YouTube Shortsキャプション', text:buildYT(p, cp), rows:8},
+    {kind:'blog',  title:'📰 ブログ記事下書き（eporashe開発日記用）', text:buildBlog(p, cp, d), rows:16, blogimg:true},
+    {kind:'voice', title:'💌 お客様の声 紹介用テンプレ', text:buildVoice(p, cp), rows:10},
+    {kind:'stories', title:'📸 実写ストーリーズ（画像＋文字）', text:buildStories(p, cp, STORY_N), rows:20, story:true},
   ];
+
   outs.forEach((o,i)=>{
-    body += '<div class="out-sec"><div class="out-hd"><span class="out-title">'+o[0]+'</span>'
-          + '<button class="copy-btn" onclick="copyOut(this,'+i+')">コピー</button></div>'
-          + '<div class="out-body"><textarea id="out-'+i+'" rows="'+o[2]+'" readonly>'+esc(o[1])+'</textarea></div>'
-          + (i===0 ? buildRefImgs(p) : '')
+    const isDone = !!done[o.kind];
+    let head = '<div class="out-hd">'
+      + '<label class="done-chk"><input type="checkbox" '+(isDone?'checked':'')+' onchange="toggleDone('+y+','+m+','+day+',\''+o.kind+'\',this.checked); renderSheetBody();"><span>作成済み</span></label>'
+      + '<span class="out-title '+(isDone?'title-done':'')+'">'+o.title+'</span>';
+    // 実写だけ枚数切替
+    if(o.story){
+      head += '<span class="story-nsel">'
+        + [5,6,7].map(nn=>'<button class="nbtn '+(STORY_N===nn?'on':'')+'" onclick="STORY_N='+nn+';renderSheetBody();">'+nn+'枚</button>').join('')
+        + '</span>';
+    }
+    head += '<button class="copy-btn" onclick="copyOut(this,'+i+')">コピー</button></div>';
+
+    body += '<div class="out-sec'+(isDone?' sec-done':'')+'">' + head
+          + '<div class="out-body"><textarea id="out-'+i+'" rows="'+o.rows+'" readonly>'+esc(o.text)+'</textarea></div>'
+          + (o.ref ? buildRefImgs(p) : '')
           + '</div>';
+
+    // ブログの直後に画像プロンプトを別セクションで
+    if(o.blogimg){
+      const bimg = buildBlogImg(p, cp);
+      body += '<div class="out-sec sub-sec">'
+        + '<div class="out-hd"><span class="out-title">🖼 ブログ差し込み画像プロンプト（本文の途中に入れる写真）</span>'
+        + '<button class="copy-btn" onclick="copyBlogImg(this)">コピー</button></div>'
+        + '<div class="out-body"><textarea id="out-blogimg" rows="14" readonly>'+esc(bimg)+'</textarea></div></div>';
+    }
   });
+
   document.getElementById('sh-body').innerHTML = body;
-  document.getElementById('ov').classList.add('on');
+}
+
+async function copyBlogImg(btn){
+  const ta = document.getElementById('out-blogimg');
+  try{ await navigator.clipboard.writeText(ta.value); }
+  catch(e){ ta.select(); document.execCommand('copy'); }
+  btn.textContent='✅ コピー済み'; btn.classList.add('done');
+  setTimeout(()=>{ btn.textContent='コピー'; btn.classList.remove('done'); },1800);
 }
 
 function closeSheet(){ document.getElementById('ov').classList.remove('on'); }
@@ -822,6 +1010,7 @@ async function copyOut(btn, i){
 // ============================================================
 document.addEventListener('DOMContentLoaded', ()=>{
   viewY = todayD.getFullYear(); viewM = todayD.getMonth();
+  loadProgress();
   loadData();
 });
 </script>
