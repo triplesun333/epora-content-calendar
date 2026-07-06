@@ -357,7 +357,12 @@ function buildComic(p, cp){
 - 各コマに「情景」と、紙メモキャプションまたは丸い吹き出し（心の声）を1つずつ付ける
 - コマ割りは大きめ・極小・横長・縦長を織り交ぜ、最後のコマは余韻を残す締めにする
 - 化粧品の効果効能を断定する表現（改善・治る・効く・予防・美白される 等）は絶対に使わない。「整える」「ケアする」「心地よい」「寄り添う」などのやわらかい表現のみ使用する
-- セリフ・キャプションはすべて日本語で、短く自然に`;
+- セリフ・キャプションはすべて日本語で、短く自然に
+
+【添付画像の扱いについて】
+- 人物画像はキャラクター参考です。この人物の顔立ち・髪型・雰囲気を全コマで維持してください
+- ロゴ画像に黒背景が付いている場合、それは視認用の背景であり、ロゴ本体は金色のエンブレムと文字の部分だけです。文字やエンブレムの穴・すき間も背景と同じく透明として扱い、黒い四角やロゴの黒背景は絶対に描かないでください
+- 商品写真はパッケージの参考です。商品を描く場合は形・色味・キャップの形状を写真から大きく変えないでください（画風は全体の水彩タッチに合わせてOK）`;
   return STYLE_BLOCK + '\n\n' + theme + '\n\n' + inst;
 }
 
@@ -427,66 +432,148 @@ function wrapJP(s, n){
   return out;
 }
 
+// 商品カテゴリ判定（ブログの語り口の出し分け用）
+function detectCat(p){
+  const n = p.name + ' ' + (p.features || '') + ' ' + (p.tags || '');
+  if(/コラーゲン|白肌星|アスカラ|デルリズム|デルミ|ボーロ|サプリ|機能性/.test(n)) return 'inner';
+  if(/シャンプー|トリートメント|スカルプ|サプル|ノーブル|頭皮|ヘアケア/.test(n)) return 'hair';
+  if(/UV|ファンデ|パウダー|チーク|リップ|アイ|眉|マスカラ|ライナー|シーラー|メイク/.test(n)) return 'make';
+  if(/歯磨き|クロス|ボディ/.test(n)) return 'other';
+  return 'skin';
+}
+
+const BLOG_CATWORD = { skin:'スキンケア', make:'メイク', hair:'ヘアケア', inner:'インナーケア', other:'毎日の習慣' };
+
+// 共感の切り出し（カテゴリ別・日替わりでローテーション）
+const BLOG_EMPATHY = {
+  skin: [
+    ['鏡を見るたびに','ふと気になる肌のこと','年齢とともに変わる肌と','どう付き合っていくか'],
+    ['お手入れの時間は','自分をいたわる大切な時間','だからこそ手に取るものは','納得して選びたいですよね'],
+  ],
+  make: [
+    ['メイクの仕上がりひとつで','その日の気分が変わる','そんな経験','ありませんか？'],
+    ['大人のメイクは','頑張りすぎないのがコツ','素肌を活かす引き算が','いちばん心地いいんです'],
+  ],
+  hair: [
+    ['髪がふわっとまとまると','その日一日が','なんだか嬉しくなる','そんな気がしませんか'],
+    ['髪は毎日の印象を','大きく左右するところ','だからこそ土台から','大切にしたいですね'],
+  ],
+  inner: [
+    ['外側からのお手入れと','同じくらい大切なのが','内側からのケアだと','日々実感しています'],
+    ['毎日の小さな積み重ねが','未来の自分をつくる','だからこそ続けやすさを','大切にしたいですね'],
+  ],
+  other: [
+    ['毎日の何気ない習慣こそ','心地よさにこだわると','暮らしがすこし','豊かになる気がします'],
+  ],
+};
+
+// 使い方・楽しみ方の提案（カテゴリ別）
+const BLOG_USAGE = {
+  skin: ['夜のお手入れの最後に','手のひらで包み込むように','じっくりなじませるのが','私のお気に入りの使い方です'],
+  make: ['朝の仕上げにひと手間','自然光の下で鏡を見ると','仕上がりの違いに','きっと気づいていただけます'],
+  hair: ['お風呂の時間を','ちょっと贅沢なケアタイムに','週末のごほうびケアにも','おすすめです'],
+  inner: ['毎日決まったタイミングで','取り入れるのが続けるコツ','私は朝の一杯と一緒に','習慣にしています'],
+  other: ['いつものルーティンに','そっとプラスするだけ','小さな心地よさを','ぜひ味わってみてください'],
+};
+
+// お気に入りポイントに添えるひとこと（日替わりローテーション）
+const BLOG_FEAT_NOTE = [
+  'ここ、地味に嬉しいポイントです',
+  '使うたびに、ふふっと嬉しくなります',
+  '毎日続けたくなる理由のひとつです',
+  'さりげないけれど、大事なところ',
+  '個人的に、いちばんのお気に入り',
+];
+
 // ブログ記事（eporashe開発日記書式：1行30文字以内・4行塊・2行空け）
 function buildBlog(p, cp, d){
   const m = d.getMonth() + 1;
   const sea = SEASONS[m];
-  const isYama = dayNum(d) % 2 === 0;
-  const writer = isYama ? 'yama' : 'MITSUKO';
-  const emo = isYama ? '🌸' : '🌿';
+  const dn = dayNum(d);
+  const emo = '🌸';
+  const cat = detectCat(p);
   const price = findPrice(p.name);
   const L = [];
-  L.push('※下書きです。タイトルは15文字以内に整えてから投稿してください');
+  L.push('※下書きです。タイトルは15文字以内に整え、内容を確認してから投稿してください');
   L.push('');
   L.push('【タイトル案】');
   L.push('・【嬉しい】' + m + '月のお気に入り');
-  L.push('・【発見】' + sea.word + 'の相棒コスメ');
+  L.push('・【本音】' + BLOG_CATWORD[cat] + 'の新しい相棒');
+  L.push('・【発見】' + sea.word + 'の' + BLOG_CATWORD[cat] + '事情');
   L.push('');
   L.push('---');
   L.push('');
   L.push('## ' + emo + '（タイトルをここに）');
   L.push('');
   L.push('こんにちは');
-  L.push(writer + 'です');
+  L.push('商品企画室のyamaです');
   L.push('');
   L.push('');
   sea.lines.forEach(function(x){ L.push(x); });
   L.push('');
   L.push('');
+  L.push('### 🌱 ふと、思うこと');
+  L.push('');
+  const empList = BLOG_EMPATHY[cat];
+  empList[dn % empList.length].forEach(function(x){ L.push(x); });
+  L.push('');
+  L.push('');
   L.push('### ✨ 今日ご紹介したいもの');
   L.push('');
-  L.push('今日お話ししたいのは');
+  L.push('そんな毎日に');
+  L.push('そっと寄り添ってくれるのが');
   wrapJP('「' + p.name + '」です', 22).forEach(function(x){ L.push(x); });
   if(p.copy){
     L.push('');
     L.push('');
-    wrapJP(p.copy, 20).forEach(function(x){ L.push(x); });
+    wrapJP('「' + p.copy + '」', 20).forEach(function(x){ L.push(x); });
+    L.push('この言葉どおりの一品なんです');
   }
   L.push('');
   L.push('');
-  L.push('### 💕 お気に入りポイント');
-  String(p.features||'').split('／').filter(Boolean).forEach(function(f){
+  L.push('企画室で大切に育ててきた');
+  L.push('こだわりのポイントを');
+  L.push('今日はたっぷり');
+  L.push('お話しさせてください');
+  L.push('');
+  L.push('');
+  L.push('### 💕 私のお気に入りポイント');
+  const feats = String(p.features||'').split('／').filter(Boolean);
+  feats.forEach(function(f, i){
     L.push('');
     L.push('');
-    wrapJP(f, 20).forEach(function(x){ L.push(x); });
+    wrapJP('◎ ' + f, 20).forEach(function(x){ L.push(x); });
+    L.push('→ ' + BLOG_FEAT_NOTE[(dn + i) % BLOG_FEAT_NOTE.length]);
   });
   L.push('');
   L.push('');
-  if(isYama){
-    L.push('実際に試してみると');
-    L.push('使い心地がとても');
-    L.push('気に入っています😊');
-  }else{
-    L.push('敏感肌の私でも');
-    L.push('心地よくお手入れ');
-    L.push('できています😊');
-  }
-  if(price){
+  const voices = String(p.voice || '').split('｜').map(function(s){ return s.trim(); }).filter(Boolean);
+  if(voices.length){
+    L.push('### 💌 お客様からのお声');
+    L.push('');
+    L.push('実際にお使いの方から');
+    L.push('こんなお声をいただいています');
     L.push('');
     L.push('');
-    wrapJP(p.name + 'は', 24).forEach(function(x){ L.push(x); });
-    L.push(price + 'です');
+    wrapJP('「' + voices[dn % voices.length] + '」', 20).forEach(function(x){ L.push(x); });
+    L.push('（お客様アンケートより）');
+    L.push('');
+    L.push('');
+    L.push('嬉しいお声に');
+    L.push('企画室一同');
+    L.push('励まされています😊');
+    L.push('');
+    L.push('');
   }
+  L.push('### ' + (cat === 'inner' ? '🍀 おすすめの取り入れ方' : '🌼 おすすめの楽しみ方'));
+  L.push('');
+  BLOG_USAGE[cat].forEach(function(x){ L.push(x); });
+  L.push('');
+  L.push('');
+  wrapJP('▪ ' + p.name, 24).forEach(function(x){ L.push(x); });
+  if(price) L.push(price);
+  L.push('直営店舗・オンラインショップで');
+  L.push('お求めいただけます');
   if(cp){
     L.push('');
     L.push('');
@@ -501,11 +588,12 @@ function buildBlog(p, cp, d){
   L.push('### 💖 おわりに');
   L.push('');
   L.push('最後まで読んでいただき');
-  L.push('ありがとうございました' + (isYama ? '💕' : '🌿'));
+  L.push('ありがとうございました' + emo);
   L.push('');
   L.push('');
-  L.push('皆さまの毎日のお手入れが');
-  L.push('楽しい時間になりますように');
+  L.push('皆さまの毎日に');
+  L.push('小さな「嬉しい」が');
+  L.push('ひとつ増えますように🌸');
   return L.join('\n');
 }
 
