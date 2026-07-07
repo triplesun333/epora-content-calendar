@@ -719,12 +719,23 @@ const OUT_KINDS = [
 ];
 let PROGRESS = {};   // { "2026-07-06": {comic:1, blog:1, ...}, ... }
 
-function loadProgress(){
-  try{ PROGRESS = JSON.parse(localStorage.getItem('epora_cal_progress')||'{}'); }
-  catch(e){ PROGRESS = {}; }
+// 別スプレッドシートから全端末共有で読み込み
+async function loadProgress(){
+  try{
+    const res = await fetch(GAS + '?action=progress&t=' + Date.now());
+    const j = await res.json();
+    PROGRESS = (j && j.progress) ? j.progress : {};
+  }catch(e){
+    PROGRESS = {};   // 通信できない時は空で続行（表示は崩さない）
+  }
+  renderCal();
 }
-function saveProgress(){
-  try{ localStorage.setItem('epora_cal_progress', JSON.stringify(PROGRESS)); }catch(e){}
+
+// 1件のON/OFFをGAS経由で保存（楽観的更新：先に画面を更新して裏で送信）
+function saveProgressRemote(date, kind, on){
+  const payload = { action:'save_progress', date:date, kind:kind, on:on };
+  const url = GAS + '?method=post&data=' + encodeURIComponent(JSON.stringify(payload)) + '&t=' + Date.now();
+  fetch(url).catch(function(){ /* 失敗しても画面は保持。次回読込で整合 */ });
 }
 function dateKey(y,m,day){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
 function getDone(y,m,day){ return PROGRESS[dateKey(y,m,day)] || {}; }
@@ -733,7 +744,7 @@ function toggleDone(y,m,day,kind,on){
   if(!PROGRESS[k]) PROGRESS[k] = {};
   if(on) PROGRESS[k][kind] = 1; else delete PROGRESS[k][kind];
   if(Object.keys(PROGRESS[k]).length===0) delete PROGRESS[k];
-  saveProgress();
+  saveProgressRemote(dateKey(y,m,day), kind, on ? 1 : 0);
   renderCal();
 }
 function doneCount(y,m,day){ return Object.keys(getDone(y,m,day)).length; }
@@ -1008,10 +1019,10 @@ async function copyOut(btn, i){
 // ============================================================
 //  INIT
 // ============================================================
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded', async ()=>{
   viewY = todayD.getFullYear(); viewM = todayD.getMonth();
-  loadProgress();
-  loadData();
+  await loadData();      // 先に商品データ（これでカレンダー描画）
+  loadProgress();        // その後に進捗を読み込み、再描画で緑バッジ反映
 });
 </script>
 </body>
