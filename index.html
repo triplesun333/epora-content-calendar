@@ -789,6 +789,13 @@ const ST_BG = {
   inner:'calm navy and gold wellness aesthetic, natural warm light, birch and tea props',
   other:'refined navy and gold lifestyle aesthetic, soft clean light',
 };
+// 商品別の世界観の舞台（主成分・産地・モチーフから。定期便のチャーガ=雪原の発想）
+const ST_STAGE = {"モイストクレンジングプラス": "set in a golden rice field at sunrise, warm amber light, grains and soft bokeh, nourishing Japanese heritage feel", "モイスチャーソープ": "set with soft clean foam and fresh water, bright airy light, pure and gentle cleansing feel", "テクスマッサージジェル": "set in a golden rice field at sunrise, warm amber light, grains and soft bokeh, nourishing Japanese heritage feel", "セルウォーター": "surrounded by translucent water ripples and pearl-like spheres, luminous aqua and pearl tones, hydrated and radiant", "ピューローションオメガ": "surrounded by crystal-clear water droplets and dewy freshness, luminous aqua tones, deeply moisturised feel", "エルローション": "surrounded by crystal-clear water droplets and dewy freshness, luminous aqua tones, deeply moisturised feel", "シャイニーブラン": "set in a misty northern-European forest with wild berries and green leaves, fresh dewy morning light, clear and luminous", "リンプル": "surrounded by crystal-clear water droplets and dewy freshness, luminous aqua tones, deeply moisturised feel", "マルチプルセラムプレミアム": "in a pristine minimal laboratory-luxe setting, soft white and gold light, scientific yet elegant", "ジュネセルセルム": "surrounded by crystal-clear water droplets and dewy freshness, luminous aqua tones, deeply moisturised feel", "キャナルビジュー": "set in a sunlit Moroccan grove of argan trees, warm golden hour light, amber and honey tones, luxurious and exotic", "リンクルNAクリーム": "set in a golden rice field at sunrise, warm amber light, grains and soft bokeh, nourishing Japanese heritage feel", "インフィニータEXゲルプラス": "in a pristine minimal laboratory-luxe setting, soft white and gold light, scientific yet elegant", "フィルミン": "on a refined platinum-and-glass surface with cool silver light, sparkling and luxurious, premium jewellery feel", "プラチナフェイスマスク": "on a refined platinum-and-glass surface with cool silver light, sparkling and luxurious, premium jewellery feel", "UVデイクリーム＆ベース": "draped with lustrous silk fabric catching soft light, smooth pearl and ivory tones, refined and delicate", "カラーUV＆ベース": "set in a misty northern-European forest with wild berries and green leaves, fresh dewy morning light, clear and luminous", "マジカルシーラー": "set in a misty northern-European forest with wild berries and green leaves, fresh dewy morning light, clear and luminous", "トランスルーセントパウダー": "surrounded by translucent water ripples and pearl-like spheres, luminous aqua and pearl tones, hydrated and radiant", "プレストファンデーション": "set in an elegant fermentation atelier with soft warm light, glass vessels and golden liquid, artisanal and refined", "マイクロフィニッシングパウダーセット": "set in a golden rice field at sunrise, warm amber light, grains and soft bokeh, nourishing Japanese heritage feel", "シルキーブラッシュ": "surrounded by translucent water ripples and pearl-like spheres, luminous aqua and pearl tones, hydrated and radiant", "モイスチャーリップ": "surrounded by translucent water ripples and pearl-like spheres, luminous aqua and pearl tones, hydrated and radiant", "リップビジューC": "surrounded by fresh citrus and bright dewy light, vivid and energising, clean and fresh", "美眉ビューティペンシル": "surrounded by crystal-clear water droplets and dewy freshness, luminous aqua tones, deeply moisturised feel", "ノーステインライナー": "surrounded by golden honeycomb textures and warm amber light, rich and nourishing", "ピュアアイラッシュ": "set in a sunlit Moroccan grove of argan trees, warm golden hour light, amber and honey tones, luxurious and exotic", "サプルプラス": "with a glossy drop of golden oil catching warm light, silky and luxurious tones", "ノーブルプラス": "draped with lustrous silk fabric catching soft light, smooth pearl and ivory tones, refined and delicate", "スカルプガードEX": "set among Japanese botanical herbs and clean water, fresh green tones, revitalising and natural", "シルク100%ヘアケアクロス": "draped with lustrous silk fabric catching soft light, smooth pearl and ivory tones, refined and delicate", "ボディローション": "set in a misty northern-European forest with wild berries and green leaves, fresh dewy morning light, clear and luminous", "ミキズコラーゲン": "surrounded by translucent water ripples and pearl-like spheres, luminous aqua and pearl tones, hydrated and radiant", "黄金のコラーゲン": "surrounded by translucent water ripples and pearl-like spheres, luminous aqua and pearl tones, hydrated and radiant", "リアルエステコラーゲンPRO": "surrounded by translucent water ripples and pearl-like spheres, luminous aqua and pearl tones, hydrated and radiant", "白肌星Mg": "on a clean mineral-stone surface with fresh water, cool grey and white tones, pure and refreshing", "アスカラダイジェスト": "set in an elegant fermentation atelier with soft warm light, glass vessels and golden liquid, artisanal and refined", "デルリズム": "set in an elegant fermentation atelier with soft warm light, glass vessels and golden liquid, artisanal and refined", "デルミライト": "set in a snowy silver-birch forest in soft winter light, cool white and emerald tones, pure and rare atmosphere", "デルミパウダー": "set in a snowy silver-birch forest in soft winter light, cool white and emerald tones, pure and rare atmosphere", "潤ボーロ": "with a glossy drop of golden oil catching warm light, silky and luxurious tones", "マグネシウム歯磨きペースト": "on a clean mineral-stone surface with fresh water, cool grey and white tones, pure and refreshing"};
+const ST_COPY = {"モイストクレンジングプラス": {"merit": "濃密なジェルが、\nメイクにやさしくなじむ。", "point": "250mL・約1〜1.5ヶ月／うるおいを守る洗い上がり"}, "モイスチャーソープ": {"merit": "きめ細かな泡で、\nつっぱらない洗い心地。", "point": "80g・約2〜3ヶ月／濃密泡の洗顔石けん"}, "テクスマッサージジェル": {"merit": "なめらかにすべって、\nお手入れの時間が心地よい。", "point": "マッサージ用ジェル／なめらかな使い心地"}, "セルウォーター": {"merit": "温泉水生まれの、\nみずみずしい肌ざわり。", "point": "温泉水配合／さっぱりプレ化粧水"}, "ピューローションオメガ": {"merit": "たっぷり使っても、\nベタつかずしっとり。", "point": "150mL・約1ヶ月／ローションパックにも"}, "エルローション": {"merit": "さらりとなじんで、\nうるおいで満たす。", "point": "300mL・大容量／さっぱりタイプ"}, "シャイニーブラン": {"merit": "透明感のある印象へ、\n自然な香りで満たす。", "point": "30mL・約1〜1.5ヶ月／ブライトニング美容液"}, "リンプル": {"merit": "油分フリーなのに、\nしっとり続く使い心地。", "point": "30mL・約1〜1.5ヶ月／エイジングケア美容液"}, "マルチプルセラムプレミアム": {"merit": "とんがりノズルで、\n気になる部分にピンポイント。", "point": "低刺激処方／目もと・口もとに"}, "ジュネセルセルム": {"merit": "なめらかになじんで、\n肌を心地よく整える。", "point": "専用アタッチメント対応セラム"}, "キャナルビジュー": {"merit": "軽いのにしっとり続く、\n一年を通して使える1本。", "point": "朝メイク前にも使える保湿クリーム"}, "リンクルNAクリーム": {"merit": "敏感肌にもやさしく、\n少量でなめらかに広がる。", "point": "30g・医薬部外品／無香料で心地よい"}, "インフィニータEXゲルプラス": {"merit": "ぷるんとしたゲルが、\n1品でお手入れを完結。", "point": "オールインワンゲル／時短ケアに"}, "フィルミン": {"merit": "お気に入りの美容液を、\n閉じ込めるひと塗り。", "point": "塗って寝られるナイトヴェール"}, "プラチナフェイスマスク": {"merit": "密着シートで、\nぜいたくなお手入れ時間。", "point": "1枚／特別な日のスペシャルケア"}, "UVデイクリーム＆ベース": {"merit": "軽い付け心地で、\n毎日使いやすい日中用。", "point": "化粧下地にもなるUVケア"}, "カラーUV＆ベース": {"merit": "高SPFなのに厚塗り感なく、\n自然な色づき。", "point": "30g・約1〜1.5ヶ月／色つきUVベース"}, "マジカルシーラー": {"merit": "仕上げのひと塗りで、\n化粧もちを心地よく。", "point": "メイクの仕上げに／サラッと快適"}, "トランスルーセントパウダー": {"merit": "軽い付け心地で、\nさらっとした仕上がり。", "point": "20g／透明感を添えるフェイスパウダー"}, "プレストファンデーション": {"merit": "厚塗り感がなく、\n自然に肌になじむ。", "point": "無添加処方／軽い付け心地のファンデ"}, "マイクロフィニッシングパウダーセット": {"merit": "きめ細かなパウダーで、\nさらっとした素肌感。", "point": "仕上げパウダーセット"}, "シルキーブラッシュ": {"merit": "やわらかな発色で、\n自然な血色感を。", "point": "無添加チーク／のせやすい"}, "モイスチャーリップ": {"merit": "うるおう付け心地で、\n色づきも楽しめる。", "point": "保湿リップ"}, "リップビジューC": {"merit": "うるおって色づく、\n毎日使いたい心地よさ。", "point": "うるおいリップ"}, "美眉ビューティペンシル": {"merit": "やわらかな描き心地で、\n自然な眉に。", "point": "描きやすいアイブロウ"}, "ノーステインライナー": {"merit": "にじみにくく、\nすっと描けるライナー。", "point": "にじみにくいアイライナー"}, "ピュアアイラッシュ": {"merit": "目もとにやさしく、\nナチュラルな仕上がり。", "point": "目もと用／やさしい使い心地"}, "サプルプラス": {"merit": "なめらかな洗い上がりで、\n指通り心地よく。", "point": "300g／アミノ酸系シャンプー"}, "ノーブルプラス": {"merit": "しっとりまとまって、\nお手入れが楽しくなる。", "point": "250g／集中トリートメント"}, "スカルプガードEX": {"merit": "頭皮をやさしく整える、\n無添加の心地よさ。", "point": "頭皮用ケア"}, "シルク100%ヘアケアクロス": {"merit": "シルクのやさしい肌ざわりで、\n髪をふく心地よさ。", "point": "シルク100%クロス"}, "ボディローション": {"merit": "のびが良く、\nさらっとまとう使い心地。", "point": "全身用／さらっとボディケア"}, "ミキズコラーゲン": {"merit": "匂いがなく飲みやすい、\n毎日続けたくなる1杯。", "point": "180g・約1〜1.5ヶ月／高分子コラーゲン"}, "黄金のコラーゲン": {"merit": "匂いがなく、\n手軽に続けられる。", "point": "飲みやすいコラーゲン"}, "リアルエステコラーゲンPRO": {"merit": "高分子タイプで、\n毎日の習慣に無理なく。", "point": "高分子コラーゲン"}, "白肌星Mg": {"merit": "手軽に取り入れられて、\n無理なく続けられる。", "point": "マグネシウム配合"}, "アスカラダイジェスト": {"merit": "続けやすい粒タイプで、\n食事のおともに。", "point": "機能性表示食品"}, "デルリズム": {"merit": "たっぷり続けやすく、\n毎日の習慣に。", "point": "毎日のリズムケア"}, "デルミライト": {"merit": "2万本に1本の希少チャーガ、\n1日1包の手軽さ。", "point": "20mL×30包／カバノアナタケエキス"}, "デルミパウダー": {"merit": "量を調整しやすい、\nパウダータイプの手軽さ。", "point": "チャーガパウダー"}, "潤ボーロ": {"merit": "体温で溶ける、\nやさしい使い心地。", "point": "無香料・無着色／デリケートケア"}, "マグネシウム歯磨きペースト": {"merit": "磨いたあと、\n口もとすっきりの心地よさ。", "point": "マグネシウム配合／毎日のオーラルケア"}};
+function copyFor(p){ return ST_COPY[p.name] || null; }
+function stageFor(p){
+  return ST_STAGE[p.name] || ST_BG[detectCat(p)] || ST_BG.skin;
+}
 const ST_CTA = '📍 直営店舗／オンラインで\n☎ フリーコール 0120-56-1115\n（平日10:00〜14:00・15:00〜18:30）\n▶ プロフィールのリンクから';
 
 function stVoices(p){
@@ -802,65 +809,70 @@ function buildStories(p, cp, n){
   n = n || 5;
   const t = detectCat(p);
   const hook = ST_HOOK[t] || ST_HOOK.skin;
-  const bg = ST_BG[t] || ST_BG.skin;
+  const stage = stageFor(p);              // 商品固有の世界観の舞台
   const price = findPrice(p.name);
   const isSkin = (t==='skin');
+  const isInner = (t==='inner');
   const vs = stVoices(p);
   const v1 = vs[0], v2 = vs[1];
   const feat = String(p.features||'').split('／').filter(Boolean)[0] || '';
+  // 焼き込みの共通トーン（紺×金の帯・明朝・余白）
+  const OVL = 'Japanese ad-style text overlay baked in: elegant Mincho headline in deep navy or gold on a soft cream/navy band, clear and legible, generous negative space. Vertical 9:16.';
+  const QUAL = 'Photorealistic, cinematic depth, high-end cosmetic campaign quality, tasteful film grain, no text distortion.';
+  const use = isInner ? 'holding a cup/glass with the drink prepared' : (t==='hair' ? 'in a serene bath/vanity moment' : 'at a bright dressing table');
 
   const L = [];
-  L.push('【実写ストーリーズ構成 '+n+'枚】9:16縦・各スライドに文字を焼き込み・モデルは顔控えめ');
-  L.push('各スライドの「文字」をnanobananaProの文字入れに、「実写」を画像生成に貼ってください。');
+  L.push('【実写ストーリーズ構成 '+n+'枚】9:16縦／各スライドに文字を焼き込み／世界観：'+ '『'+p.name+'』の成分・ストーリーに合わせた舞台');
+  L.push('文字はnanobananaProの文字入れへ、［実写］は画像生成へ。モデルは顔控えめ・使用シーンあり。');
   if(cp) L.push('開催中：' + cp.name + '（' + cpSummary(cp) + '／' + fmtMD(cp.date_end) + 'まで）');
   L.push('══════════════════════');
 
-  // 1 フック
-  L.push('▼ 1枚目｜フック（指を止める）');
+  // 1 フック（舞台の引き画で世界観を提示しつつ悩みを重ねる）
+  L.push('▼ 1枚目｜フック（世界観で引き込む）');
   L.push('［文字］');
   L.push('（上・大きく）「' + hook[0][0]);
   L.push('　　　　　　　' + hook[0][1] + '」');
   L.push('（中央）' + hook[1]);
-  L.push('（下・小さく）▶ 実は"選び方"かもしれません。次へ');
-  L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. A woman in her late 40s-50s in daily life, shown from behind or three-quarter with face softly out of focus, an honest slightly-troubled expression relating to the concern. Cinematic, high-end. Upper and lower areas darker/clean for Japanese text. Clean Japanese text rendering.');
+  L.push('（下・小さく）▶ その答えを、次のページで。');
+  L.push('［実写］A cinematic wide vertical 9:16 establishing shot, ' + stage + '. A woman in her late 40s-50s appears small within this beautiful scene (seen from behind or side, face away or softly blurred), an honest, relatable mood about the concern. Atmospheric and evocative — the setting itself hints at the key ingredient. Upper/lower kept clean and slightly darker for text. ' + OVL + ' ' + QUAL);
   L.push('──────────────');
 
-  // 2 共感
-  L.push('▼ 2枚目｜共感（自分ごとに）');
+  // 2 共感（寄りの使用シーンで自分ごと化）
+  L.push('▼ 2枚目｜共感（使用シーンで自分ごとに）');
   L.push('［文字］');
   L.push('（上）朝は気に入っていたのに、');
-  L.push('　　　時間が経つと物足りない。');
+  L.push('　　　時間が経つと、物足りない。');
   L.push('（中央）"ちゃんとケアしているのに"');
-  L.push('　　　　と感じること、ありませんか?');
-  L.push('（下）▶ そこを見直した1本があります。次へ');
-  L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. Intimate close-up of a woman\'s hands (40s-50s) in soft natural light, a quiet contemplative moment. Warm, authentic, shallow depth of field. Generous clean space top and bottom for Japanese text.');
+  L.push('　　　　と感じたこと、ありませんか?');
+  L.push('（下）▶ その理由を見つけました。次へ');
+  L.push('［実写］An intimate vertical 9:16 close-up, ' + stage + ' softly blurred in the background. A woman (40s-50s) ' + use + ', a quiet contemplative micro-moment, hands and skin in focus, face gently cropped or out of focus. Warm, authentic, real-life. Lower third clean for text. ' + OVL + ' ' + QUAL);
   L.push('──────────────');
 
-  // 3 発見（商品）
-  L.push('▼ 3枚目｜発見（商品の魅力を具体で）');
+  // 3 発見（商品ヒーロー×舞台。成分ストーリーを画で語る）
+  const cpy = copyFor(p);
+  const merit = cpy ? cpy.merit : (isSkin ? '軽いのに、しっとり続く。\n　　　　少量で、なめらかに広がる。' : (isInner ? '毎日に、無理なく溶け込む。\n　　　　続けやすさが、いちばんの魅力。' : '軽やかなのに、印象が変わる。\n　　　　毎日使いたくなる心地よさ。'));
+  L.push('▼ 3枚目｜発見（商品×成分ストーリー）');
   L.push('［文字］');
   L.push('（上）エポラーシェ');
   L.push('　　　' + p.name);
-  L.push('（中央）' + (isSkin ? '軽いのに、しっとり続く。\n　　　　少量でなめらかに広がる。' : '毎日に取り入れやすい。\n　　　　続けやすさが、いちばんの魅力。'));
+  L.push('（中央）' + merit);
   if(price) L.push('　　　　' + price);
-  if(feat) L.push('　　　　' + feat);
+  if(cpy && cpy.point) L.push('　　　　' + cpy.point); else if(feat) L.push('　　　　' + feat);
   L.push('（下）▶ 使った方の声を紹介します。次へ');
-  L.push('［実写］Photorealistic vertical 9:16 hero shot of the ' + p.name + ' product, ' + bg + '. Product razor-sharp and centered on an elegant surface, subtle texture swipe or minimal natural props. Luxury cosmetic advertising photography. Upper space clean for product name. IMPORTANT: keep the real product package unchanged.');
+  L.push('［実写］A luxurious vertical 9:16 hero product shot of the ' + p.name + ', ' + stage + '. The product razor-sharp and beautifully lit, surrounded by symbolic natural motifs of its key ingredient, a subtle swipe/drop of texture beside it. Editorial cosmetic advertising. Upper space clean for the product name. ' + OVL + ' IMPORTANT: keep the real product package exactly as provided, do not redesign it. ' + QUAL);
   L.push('──────────────');
 
-  // 4 証拠（声）
+  // 4 証拠（声＋使用シーン）
   L.push('▼ 4枚目｜証拠（お客様の声）');
   L.push('［文字］');
   L.push('（上・小見出し）お客様アンケートより');
   L.push('（中央）' + (v1 ? '「' + v1 + '」' : '「使い心地が気に入っています」'));
   if(v2) L.push('　　　　「' + v2 + '」');
   L.push('（下）▶ 気になった方へ。次へ');
-  L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. A woman in her 50s (three-quarter view, face gently cropped or softly out of focus, calm confident expression) using or holding the product naturally in bright soft light. Trustworthy, real, premium campaign look. Darker clean panels top and bottom for testimonial text.');
+  L.push('［実写］A warm, trustworthy vertical 9:16. A woman in her 50s (three-quarter view, face gently cropped or softly out of focus, calm confident) actually using ' + p.name + ' naturally, ' + stage + ' softly present in the background. Real, aspirational, premium campaign look. Clean darker panels top/bottom for testimonial text. ' + OVL + ' ' + QUAL);
   L.push('※声は実際のアンケート／掲載前に佐久間さんの確認を');
   L.push('──────────────');
 
-  // ここまでで4枚。残りは「中間スライド（任意）＋最終CTA」で合計n枚にする。
-  // n=5 → CTAが5枚目。n=6 → 中間1枚＋CTA。n=7 → 中間2枚＋CTA。
   let no = 5;
 
   // 中間①（n>=6）：使い方 or 続けるメリット
@@ -874,7 +886,7 @@ function buildStories(p, cp, n){
       L.push('　　　　顔全体にやさしくなじませる。');
       L.push('　　　　朝メイク前にも。');
       L.push('（下）▶ 続けやすさの理由は次へ');
-      L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. Close-up of fingertips gently applying the product to the cheek, dewy skin catching soft light, serene mood, face softly cropped. Premium skincare campaign. Clean space for step text.');
+      L.push('［実写］A tender vertical 9:16 close-up of fingertips gently applying ' + p.name + ' to the cheek, dewy skin catching soft light, serene, face softly cropped, ' + stage + ' faint in the background. Premium skincare campaign. Clean space for step text. ' + OVL + ' ' + QUAL);
     } else {
       L.push('▼ '+no+'枚目｜続けるメリット');
       L.push('［文字］');
@@ -883,27 +895,27 @@ function buildStories(p, cp, n){
       L.push('　　　　送料・代引手数料は弊社負担。');
       L.push('　　　　ポイントも貯まる・使える。');
       L.push('（下）▶ くわしくは次へ');
-      L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. The product with subtle gold accents conveying ongoing care, elegant still life. Clean space for benefit text. Keep the real product package unchanged.');
+      L.push('［実写］An elegant vertical 9:16 still life of ' + p.name + ' with subtle gold accents suggesting ongoing care, ' + stage + '. Clean space for benefit text. Keep the real product package unchanged. ' + OVL + ' ' + QUAL);
     }
     L.push('──────────────');
     no++;
   }
 
-  // 7枚目（任意）：信頼・安心
+  // 中間②（n>=7）：信頼・安心
   if(n >= 7){
     L.push('▼ '+no+'枚目｜信頼・安心');
     L.push('［文字］');
     L.push('（上・小見出し）選ばれ続ける理由');
-    L.push('（中央）無添加・水溶性のシンプル設計。');
+    L.push('（中央）無添加・シンプル設計。');
     L.push('　　　　国内製造・美容研究家監修。');
-    L.push('　　　　20年以上、肌と向き合ってきました。');
+    L.push('　　　　肌と、ずっと向き合ってきました。');
     L.push('（下）▶ 最後にご案内です。次へ');
-    L.push('［実写］Photorealistic vertical 9:16. ' + bg + '. Refined brand still life conveying trust and craftsmanship — the product with soft gold light, minimal premium styling. Clean space for text. Keep the real product package unchanged.');
+    L.push('［実写］A refined vertical 9:16 brand still life of ' + p.name + ' conveying trust and craftsmanship, soft gold light, ' + stage + ' subtly evoked, minimal premium styling. Clean space for text. Keep the real product package unchanged. ' + OVL + ' ' + QUAL);
     L.push('──────────────');
     no++;
   }
 
-  // 最終：背中押し
+  // 最終：背中押し（CTA）
   L.push('▼ '+no+'枚目｜背中押し（CTA・買い方）');
   L.push('［文字］');
   L.push('（上）気になっていた方こそ、一度。');
@@ -913,7 +925,7 @@ function buildStories(p, cp, n){
   L.push('　　　　美容研究家 岡江美希 監修。');
   L.push('（下・導線）');
   L.push(ST_CTA);
-  L.push('［実写］Photorealistic vertical 9:16 elegant still life of the ' + p.name + ' on soft linen or refined surface, ' + bg + '. Minimal, generous empty space for branding and CTA text. Calm luxury mood. Lower third clean for contact info. Keep the real product package unchanged.');
+  L.push('［実写］A beautiful closing vertical 9:16 still life of ' + p.name + ' on a refined surface, ' + stage + ', gentle luxurious light, generous empty space for branding and CTA. Calm, aspirational finish. Lower third clean for contact info. Keep the real product package unchanged. ' + OVL + ' ' + QUAL);
 
   return L.join('\n');
 }
